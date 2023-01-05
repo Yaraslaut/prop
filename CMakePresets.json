@@ -1,0 +1,69 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+
+  "configurePresets": [
+    {
+      "name": "common-settings",
+      "displayName": "Commons configuration settings ",
+      "hidden" : true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "Kokkos_ENABLE_SERIAL": "ON",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ARCH_NATIVE": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "BUILD_SHARED_LIBS": "ON",
+        "CMAKE_CXX_STANDARD": "20"
+      }
+    },
+
+    {
+      "name": "prop-debug",
+      "displayName": "Main preset for debug purposes",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "Kokkos_ENABLE_DEBUG_BOUNDS_CHECK": "ON"
+      }
+    },
+
+    {
+      "name": "prop-release",
+      "displayName": "Main preset for release purposes",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    {
+      "name": "common-build-settings",
+      "description": "Ninja settings common to all build presets",
+      "hidden": true
+    },
+
+    {
+      "name": "prop-debug",
+      "configurePreset": "prop-debug",
+      "inherits": "common-build-settings"
+    },
+
+    {
+      "name": "prop-release",
+      "configurePreset": "prop-release",
+      "inherits": "common-build-settings"
+    }
+  ]
+}
