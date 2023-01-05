@@ -1,0 +1,151 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+
+  "configurePresets": [
+    {
+      "name": "common-settings",
+      "displayName": "Commons configuration settings ",
+      "hidden" : true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "Kokkos_ENABLE_SERIAL": "ON",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS":  "ON",
+        "ENABLE_VIEW_RANKS": "2",
+        "BUILD_SHARED_LIBS": "ON",
+        "CMAKE_CXX_STANDARD": "20",
+        "Prop_USE_SPDLOG": "OFF"
+      }
+    },
+
+    {
+      "name": "prop-debug",
+      "displayName": "Prop configuration for debug build.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "Kokkos_ENABLE_CUDA" : "OFF",
+        "Kokkos_ENABLE_OPENMP" : "OFF",
+        "Kokkos_ENABLE_THREADS" : "OFF",
+        "Kokkos_ENABLE_DEBUG_BOUNDS_CHECK": "ON"
+      }
+    },
+
+    {
+      "name": "prop-openmp-debug",
+      "displayName": "Prop configuration for debug build.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "Kokkos_ENABLE_CUDA" : "OFF",
+        "Kokkos_ENABLE_THREADS" : "OFF",
+        "Kokkos_ENABLE_DEBUG_BOUNDS_CHECK": "ON"
+      }
+    },
+
+
+    {
+      "name": "prop-actions",
+      "displayName": "Github actions preset.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_VIEW_RANKS" : "2",
+        "Kokkos_ENABLE_CUDA" : "OFF",
+        "Kokkos_ENABLE_OPENMP": "OFF",
+        "Kokkos_ENABLE_THREADS" : "ON",
+        "Kokkos_ENABLE_SERIAL": "ON"
+      }
+    },
+
+    {
+      "name": "prop-cuda-actions",
+      "displayName": "Github actions preset with cuda enabled.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_VIEW_RANKS" : "2",
+        "Kokkos_ENABLE_OPENMP": "OFF",
+        "Kokkos_ENABLE_THREADS" : "OFF",
+        "Kokkos_ENABLE_SERIAL": "ON",
+        "Kokkos_ENABLE_CUDA" : "ON",
+        "Kokkos_ARCH_VOLTA70" : "ON"
+      }
+    },
+
+    {
+      "name": "prop-all-debug",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ENABLE_CUDA" : "ON"
+      }
+    },
+
+    {
+      "name": "prop-cuda-debug",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "Kokkos_ENABLE_OPENMP": "OFF",
+        "Kokkos_ENABLE_CUDA" : "ON"
+      }
+    },
+
+
+    {
+      "name": "prop-openmp-release",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ENABLE_CUDA" : "OFF"
+      }
+    },
+
+
+    {
+      "name": "prop-cuda-release",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ENABLE_CUDA" : "ON"
+      }
+    }
+
+
+  ],
+  "buildPresets": [
+    {
+      "name": "common-build-settings",
+      "description": "Ninja settings common to all build presets",
+      "hidden": true
+    }
+
+  ]
+}
