@@ -10,11 +10,11 @@ def show(x,y):
     plt.show()
 
 pr.initialize()
-nx = 200
+nx = 400
 x_min = -10.0
 x_max = 10.0
 
-ny = 200
+ny = 400
 y_min = -10.0
 y_max = 10.0
 
@@ -32,7 +32,13 @@ s = pr.System2D(ax,ay)
 
 
 block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(5.0,5.0),pr.IsotropicMedium(10.0,0.0,0.0))
-#s.addBlock(block)
+s.addBlock(block)
+
+freq = 2 * np.pi / 2.0
+ampl = 1.0
+plane = pr.PlaneWave2D(freq, ampl, pr.Point2D(1.0,0.0), pr.Point2D(0.0,0.0))
+
+s.addSourceEz(plane)
 
 Ez = pr.Component2D.Ez
 Hx = pr.Component2D.Hx
@@ -59,7 +65,7 @@ con = ax.contourf(x,y,np.transpose(z), 10, cmap='plasma')
 # Method to change the contour data points
 def animate(i):
     plt.cla()
-    s.propagate(0.2)
+    s.propagate(0.1)
 
     #line.set_ydata(s.get(Ez)[:,50])
     #ax.set_ylim(-10.0,10.0)

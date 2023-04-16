@@ -1,11 +1,13 @@
 #include "system.h"
 
+#include "geometry.h"
+
 // #include "Kokkos_Complex.hpp"
 #include <cmath>
 void Prop::System2D::propagateCustom(double totalTime)
 {
     double max_time_step = _courant / Const_c / std::sqrt(2.0 / _space_step / _space_step);
-    spdlog::info("max_time_step is {:f}",max_time_step);
+    spdlog::info("max_time_step is {:f}", max_time_step);
     if (totalTime < max_time_step)
         return propagateFixedTime(totalTime);
     double accumulated_time_step { 0.0 };
@@ -22,6 +24,17 @@ void Prop::System2D::propagateFixedTime(double time_step)
     spdlog::debug("[System] Courant factor is   : {:f} ", courant);
     spdlog::debug("[System] Propagate. Current time is  : {:f} ", _time);
 
+    auto update_from_source = [&]() {
+        Kokkos::parallel_for(
+            "update electric field", _field.getPolicy(), KOKKOS_LAMBDA(int i, int j) {
+                auto x = _geometry._x.getCoord(i);
+                auto y = _geometry._y.getCoord(j);
+                for (auto& sourceEz: _sources_Ez)
+                {
+                    _field._Ez(i, j) += sourceEz->getField(_time, Point2D { x, y }) * time_step;
+                }
+            });
+    };
 
     auto update_magnetic_field = [&]() {
         Kokkos::parallel_for(
@@ -45,8 +58,6 @@ void Prop::System2D::propagateFixedTime(double time_step)
 
                 _field._Hx(i, j) = C_hxh * _field._Hx(i, j) - C_hxe * (_field._Ez(i, jpo) - _field._Ez(i, j));
                 _field._Hy(i, j) = C_hyh * _field._Hy(i, j) + C_hye * (_field._Ez(ipo, j) - _field._Ez(i, j));
-
-
             });
     };
 
@@ -72,7 +83,6 @@ void Prop::System2D::propagateFixedTime(double time_step)
                                    + C_ezh
                                          * ((_field._Hy(i, j) - _field._Hy(imo, j))
                                             - (_field._Hx(i, j) - _field._Hx(i, jmo)));
-
             });
     };
 
@@ -82,19 +92,9 @@ void Prop::System2D::propagateFixedTime(double time_step)
         this->_geometry.fillGeometryFromEntity();
     };
 
+    update_from_source();
     update_magnetic_field();
     update_electric_field();
-
-
-    Kokkos::parallel_for(
-                         "update electric field", _field.getPolicy(), KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
-                             auto i = _geometry._x.getIndex(iinit);
-                             auto j = _geometry._y.getIndex(jinit);
-                             auto res = 1.0 * std::cos(2.0 * 3.14 * _time / 4.0) * time_step ;
-                             res *= std::exp( - std::pow(i-50.0,2.0) / 0.5);
-                             _field._Ez(i,j) += res;
-                         });
-
 
     _time += time_step;
     spdlog::info("time is {:f}", _time);

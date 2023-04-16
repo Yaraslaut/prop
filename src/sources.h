@@ -1,37 +1,40 @@
 #pragma once
 
-#include <numbers>
-
-#include "geometry.h"
 #include "field.h"
+#include "geometry.h"
 #include "prop.h"
+
+#include <numbers>
 #include <spdlog/spdlog.h>
 
 namespace Prop
 {
 
-class Source{};
-
-class PlaneWave: Source
+struct Source
 {
-    //Plane _plane;
-    double _freq;  // TODO
 };
 
-// class GaussianSource: Source
-// {
-//   public:
-//     Point _mu;
-//     double _freq;
-//     double _sigma;
-//     GaussianSource(Point m, double f, double si): _mu(m), _freq(f), _sigma(si) {};
-//     double get_field(Point x, double time)
-//     {
-//         //auto dist = x - _mu; TODO
-//         auto exp_factor = 1.0; // TODO -std::pow(dist.number() / _sigma, 2);
-//         auto norm = 1 / (_sigma * std::sqrt(2 * std::numbers::pi));
-//         return norm * cos(_freq * time) * exp(0.5 * exp_factor) * norm;
-//     }
-// };
+struct PlaneWave2D: Source
+{
+    // Plane _plane;
+    double _freq;
+    double _amplitude;
+    Point2D _center;
+    Point2D _direction; // TODO make it work
+
+    PlaneWave2D(auto f, auto am, Point2D cen, Point2D dir):
+        _freq(f), _amplitude(am), _center(cen), _direction(dir) {};
+
+    double getField(double time, Point2D point)
+    {
+
+        auto res = _amplitude * std::cos(time * _freq);
+
+        auto distToCenter = point._x - _center._x;
+        res *= std::exp(-std::pow(distToCenter.number(), 2.0) / 0.5); // TODO fix usage of units
+
+        return res;
+    }
+};
 
 } // namespace Prop

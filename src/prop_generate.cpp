@@ -19,6 +19,8 @@ PYBIND11_MODULE(pyprop, m)
     py::class_<Prop::Axis>(m, "Axis").def(py::init<double, double, Prop::index>());
     py::class_<Prop::Point2D>(m, "Point2D").def(py::init<double, double>());
     py::class_<Prop::Dimensions2D>(m, "Dimensions2D").def(py::init<double,double>());
+    py::class_<Prop::PlaneWave2D>(m, "PlaneWave2D").def(py::init<double,double, Prop::Point2D, Prop::Point2D>());
+
 
     py::enum_<Prop::Components3D>(m, "Component3D")
         .value("Ex", Prop::Components3D::Ex)
@@ -41,8 +43,6 @@ PYBIND11_MODULE(pyprop, m)
         .def(py::init<Prop::Point2D,Prop::Dimensions2D, Prop::IsotropicMedium>())
         .def(py::init<Prop::Point2D,Prop::Dimensions2D>());
 
-        //.def(py::init<Prop::Point2D,Prop::Dimensions2D,Prop::IsotropicMedium>());
-
 
     py::class_<Prop::System2D>(m, "System2D")
         .def(py::init<Prop::Axis, Prop::Axis>())
@@ -50,7 +50,11 @@ PYBIND11_MODULE(pyprop, m)
         .def("set", &Prop::System2D::setExternal, py::return_value_policy::reference_internal)
         .def("propagate", &Prop::System2D::propagate)
         .def("propagate", &Prop::System2D::propagateCustom)
-        .def("addBlock", &Prop::System2D::addBlock);
+        .def("addBlock", &Prop::System2D::addBlock)
+        .def("addSourceEz", &Prop::System2D::addSourceEz);
+
+
+
     m.def("initialize", []() {
         if (!Kokkos::is_initialized())
         {

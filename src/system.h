@@ -2,7 +2,10 @@
 
 #include "field.h"
 #include "geometry.h"
+#include "sources.h"
 #include "types.h"
+
+#include <memory>
 namespace Prop
 {
 class System2D
@@ -24,7 +27,6 @@ class System2D
             spdlog::debug("[TwoDimensionalSystem] Initializing Kokkos...");
             Kokkos::initialize();
         }
-
     };
 
     External_data& getExternal(Components comp) { return _field.getExternal(comp); }
@@ -32,9 +34,10 @@ class System2D
     void setExternal(Components comp) { _field.setExternal(comp); }
 
     SimplePolicy2D getPolicy() { return _field.getPolicy(); }
-    void addBlock(Block2D& block) {
-        _geometry.addBlock(block);
-    };
+    void addBlock(Block2D& block) { _geometry.addBlock(block); };
+
+    void addSourceEz(PlaneWave2D& pw) { _sources_Ez.push_back(std::make_unique<PlaneWave2D>(pw)); }
+
     void propagateCustom(double);
     void propagateFixedTime(double);
     void propagate() { propagateCustom(_courant * Const_c / std::sqrt(2.0 / _space_step / _space_step)); }
@@ -43,7 +46,7 @@ class System2D
     GridData& getHy() { return _field._Hy; };
 
   private:
-    bool _firstTime {true};
+    bool _firstTime { true };
     double _time { 0.0 };
     double _courant { 0.5 };
     double _resolution = std::numeric_limits<double>::signaling_NaN();
@@ -52,6 +55,7 @@ class System2D
 
     Geometry2D _geometry;
 
+    std::vector<std::unique_ptr<PlaneWave2D>> _sources_Ez;
     Grid2DRectangular _field;
 };
 } // namespace Prop
