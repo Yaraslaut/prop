@@ -229,6 +229,16 @@ class Geometry2D
             });
     }
 
+    void getPMLFactor(index i ,index j)
+    {
+        auto x = _x.getCoord(i);
+        auto y = _y.getCoord(j);
+        double sigma {0.2};
+        double aw{0.1};
+        double epsilon{1.0};
+        double omega{1.0};
+        auto c = 1.0 +  sigma / (aw + std::complex<double>(0.0,1.0) * epsilon * omega  );
+    }
   private:
     GridData _sigma;
     GridData _epsilon;

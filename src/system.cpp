@@ -50,12 +50,11 @@ void Prop::System2D::propagateFixedTime(double time_step)
                 auto mu { _geometry.getMu(i, j) };
                 auto sigma { _geometry.getSigma(i, j) };
 
-                auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * time_step) / (2 * mu)) };
-                auto C_hxh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2 * mu)) };
+                auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * time_step) / (2.0 * mu)) };
+                auto C_hxh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
                 auto C_hxe { one_over_one_plus_sigma_mu * time_step / (mu * _space_step) };
-                auto C_hyh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2 * mu)) };
+                auto C_hyh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
                 auto C_hye { one_over_one_plus_sigma_mu * time_step / (mu * _space_step) };
-
                 _field._Hx(i, j) = C_hxh * _field._Hx(i, j) - C_hxe * (_field._Ez(i, jpo) - _field._Ez(i, j));
                 _field._Hy(i, j) = C_hyh * _field._Hy(i, j) + C_hye * (_field._Ez(ipo, j) - _field._Ez(i, j));
             });
@@ -76,13 +75,13 @@ void Prop::System2D::propagateFixedTime(double time_step)
                 auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * time_step) / (2.0 * mu)) };
                 auto C_eze { (1.0 - (sigma * time_step) / (2.0 * epsilon))
                              / (1.0 + (sigma * time_step) / (2.0 * epsilon)) };
-                auto C_ezh { time_step / (1.0 + (sigma * time_step) / (2.0 * epsilon))
-                             / (epsilon * _space_step) };
+                auto C_ezhx { time_step / (1.0 + (sigma * time_step) / (2.0 * epsilon))
+                              / (epsilon * _space_step) };
+                auto C_ezhy { time_step / (1.0 + (sigma * time_step) / (2.0 * epsilon))
+                              / (epsilon * _space_step) };
 
-                _field._Ez(i, j) = C_eze * _field._Ez(i, j)
-                                   + C_ezh
-                                         * ((_field._Hy(i, j) - _field._Hy(imo, j))
-                                            - (_field._Hx(i, j) - _field._Hx(i, jmo)));
+                _field._Ez(i, j) = C_eze * _field._Ez(i, j) + C_ezhx * (_field._Hy(i, j) - _field._Hy(imo, j))
+                                   - C_ezhy * (_field._Hx(i, j) - _field._Hx(i, jmo));
             });
     };
 
