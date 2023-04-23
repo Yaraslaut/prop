@@ -20,7 +20,7 @@ struct PlaneWave2D: Source
     double _freq;
     double _amplitude;
     Point2D _center;
-    Point2D _direction; // TODO make it work
+    Point2D _direction;
 
     PlaneWave2D(auto f, auto am, Point2D cen, Point2D dir):
         _freq(f), _amplitude(am), _center(cen), _direction(dir) {};
@@ -30,10 +30,11 @@ struct PlaneWave2D: Source
 
         auto res = _amplitude * std::cos(time * _freq);
 
-        auto distToCenter = point._x - _center._x;
-        res *= std::exp(-std::pow(distToCenter.number(), 2.0) / 0.5); // TODO fix usage of units
-
-        return res;
+        auto vecToCenter = point - _center;
+        double scalarProd = dot(vecToCenter,_direction);
+        if(abs(scalarProd) < 0.1) // TODO ARBITRARY NUMBER
+            return res;
+        return 0.0;
     }
 };
 

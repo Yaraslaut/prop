@@ -112,6 +112,16 @@ template <typename T>
 concept concept_axis = std::derived_from<T, Axis>;
 
 /*
+ * scalar product funciton for 2d vectors
+ */
+template<typename T>
+double dot(Point2DUnits<T>& f, Point2DUnits<T>& s)
+{
+    return (f._x * s._x + f._y * s._y).number(); // TODO fix units
+}
+
+
+/*
 ** base class for entity in 2D space
 */
 // struct Entity2D
