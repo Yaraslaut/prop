@@ -2,6 +2,7 @@
 
 #include "geometry.h"
 #include "types.h"
+
 #include <cmath>
 
 namespace Prop

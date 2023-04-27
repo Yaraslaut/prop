@@ -114,12 +114,11 @@ concept concept_axis = std::derived_from<T, Axis>;
 /*
  * scalar product funciton for 2d vectors
  */
-template<typename T>
+template <typename T>
 double dot(Point2DUnits<T>& f, Point2DUnits<T>& s)
 {
     return (f._x * s._x + f._y * s._y).number(); // TODO fix units
 }
-
 
 /*
 ** base class for entity in 2D space
@@ -239,16 +238,17 @@ class Geometry2D
             });
     }
 
-    void getPMLFactor(index i ,index j)
+    void getPMLFactor(index i, index j)
     {
         auto x = _x.getCoord(i);
         auto y = _y.getCoord(j);
-        double sigma {0.2};
-        double aw{0.1};
-        double epsilon{1.0};
-        double omega{1.0};
-        auto c = 1.0 +  sigma / (aw + std::complex<double>(0.0,1.0) * epsilon * omega  );
+        double sigma { 0.2 };
+        double aw { 0.1 };
+        double epsilon { 1.0 };
+        double omega { 1.0 };
+        auto c = 1.0 + sigma / (aw + std::complex<double>(0.0, 1.0) * epsilon * omega);
     }
+
   private:
     GridData _sigma;
     GridData _epsilon;

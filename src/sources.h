@@ -31,8 +31,8 @@ struct PlaneWave2D: Source
         auto res = _amplitude * std::cos(time * _freq);
 
         auto vecToCenter = point - _center;
-        double scalarProd = dot(vecToCenter,_direction);
-        if(abs(scalarProd) < 0.1) // TODO ARBITRARY NUMBER
+        double scalarProd = dot(vecToCenter, _direction);
+        if (abs(scalarProd) < 0.1) // TODO ARBITRARY NUMBER
             return res;
         return 0.0;
     }

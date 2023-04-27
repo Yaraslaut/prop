@@ -58,7 +58,6 @@ TEST_CASE("Dimensions 2D", "[geometry]")
     TEST_QUANT(size._ydim, 2.0);
 }
 
-
 TEST_CASE("Two dimensional system", "[TwoDimensionalSystem], [kokkos]")
 {
     if (!Kokkos::is_initialized())
