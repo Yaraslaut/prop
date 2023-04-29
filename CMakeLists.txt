@@ -92,7 +92,7 @@ set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 set(CMAKE_CXX_STANDARD 20)
 
 # ---- add Modules ----
-add_library(prop_module)
+add_library(prop_module STATIC)
 target_sources(prop_module
   PUBLIC
   FILE_SET cxx_modules TYPE CXX_MODULES FILES
@@ -126,23 +126,18 @@ pybind11_add_module(pyprop
     src/prop_generate.cpp)
 
 TARGET_LINK_LIBRARIES(pyprop PRIVATE
-  prop_lib)
+  prop_lib
+  prop_module
+)
 
 # ---- Declare executable ----
-
-add_executable(prop_exe src/main.cpp)
-add_executable(prop::exe ALIAS prop_exe)
-set_property(TARGET prop_exe PROPERTY OUTPUT_NAME prop)
 
 # ---- Declare libraries that use for linking ----
 set(Linked_libraries
   prop_lib
   prop_module
 )
-
-# ---- Link libraries ----
-
-target_link_libraries(prop_exe PRIVATE ${Linked_libraries})
+message("LINKED LIBRARIES : ${Linked_libraries}")
 
 # ---- Add tests ----
 
