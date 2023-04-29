@@ -81,11 +81,24 @@ set(UNITS_USE_LIBFMT OFF)
 add_subdirectory("${CMAKE_BINARY_DIR}/_deps/units-src/src")
 
 
-# ------------------------------------------------------
-#
 if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
     set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 endif()
+
+# ---- add Modules support ----
+
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "2182bf5c-ef0d-489a-91da-49dbc3090d2a")
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
+set(CMAKE_CXX_STANDARD 20)
+
+# ---- add Modules ----
+add_library(prop_module)
+target_sources(prop_module
+  PUBLIC
+  FILE_SET cxx_modules TYPE CXX_MODULES FILES
+  src/hello.cppm
+)
+target_compile_features(prop_module PUBLIC cxx_std_20)
 
 # ---- Declare library ----
 
@@ -95,11 +108,15 @@ add_library(
     src/system.cpp
 )
 
-target_link_libraries(prop_lib PUBLIC Kokkos::kokkos spdlog::spdlog mp-units::mp-units Eigen3::Eigen)
+target_link_libraries(prop_lib PUBLIC
+  Kokkos::kokkos
+  spdlog::spdlog
+  mp-units::mp-units
+  Eigen3::Eigen
+)
 
 include_directories(
     prop_lib ${warning_guard}
-    PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
 )
 
@@ -108,7 +125,8 @@ include_directories(
 pybind11_add_module(pyprop
     src/prop_generate.cpp)
 
-TARGET_LINK_LIBRARIES(pyprop PRIVATE prop_lib)
+TARGET_LINK_LIBRARIES(pyprop PRIVATE
+  prop_lib)
 
 # ---- Declare executable ----
 
@@ -117,8 +135,10 @@ add_executable(prop::exe ALIAS prop_exe)
 set_property(TARGET prop_exe PROPERTY OUTPUT_NAME prop)
 
 # ---- Declare libraries that use for linking ----
-
-set(Linked_libraries prop_lib)
+set(Linked_libraries
+  prop_lib
+  prop_module
+)
 
 # ---- Link libraries ----
 

@@ -70,6 +70,9 @@ TEST_CASE("Two dimensional system", "[TwoDimensionalSystem], [kokkos]")
 
     Prop::System2D system { ax, ay };
     auto& ext = system.getExternal(Prop::Components2DTM::Ez);
+    // std::ranges::for_each(std::views::iota(0, 100), [&](int i) {
+    //     std::ranges::for_each(std::views::iota(0, 10), [&](int j) { ext(i, j) = i * 1.0; });
+    // });
 
     system.setExternal(Prop::Components2DTM::Ez);
 
