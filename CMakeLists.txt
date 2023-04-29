@@ -40,7 +40,7 @@ FetchContent_MakeAvailable(Eigen)
 FetchContent_Declare(
   Kokkos
   GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-  GIT_TAG        3.7.00
+  GIT_TAG        4.0.00
 )
 FetchContent_MakeAvailable(Kokkos)
 
@@ -83,8 +83,6 @@ add_subdirectory("${CMAKE_BINARY_DIR}/_deps/units-src/src")
 
 # ------------------------------------------------------
 #
-
-
 if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
     set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 endif()
