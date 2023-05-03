@@ -135,39 +135,87 @@ double dot(Point2DUnits<T>& f, Point2DUnits<T>& s)
 
 struct Block2D
 {
-    Block2D(Point2D cent, Dimensions2D size): _center(cent), _size(size), _medium(0.0, 0.0, 0.0) {};
+    Block2D(Point2D cent, Dimensions2D size):
+        _center(cent), _size(size), _medium { std::make_shared<Medium>(IsotropicMedium(0.0, 0.0, 0.0)) } {};
     Block2D(Point2D cent, Dimensions2D size, IsotropicMedium medium):
-        _center(cent), _size(size), _medium(medium) {};
+        _center(cent), _size(size), _medium { std::make_shared<Medium>(medium) } {};
     Block2D(Point2D cent, Dimensions2D size, auto eps, auto mu, auto sigma):
-        _center(cent), _size(size), _medium(eps, mu, sigma) {};
+        _center(cent), _size(size), _medium { std::make_shared<Medium>(IsotropicMedium(eps, mu, sigma)) } {};
+    Block2D(Point2D cent, Dimensions2D size, PML medium):
+        _center(cent), _size(size), _medium { std::make_shared<PML>(medium) } {};
 
     Point2D _center;
     Dimensions2D _size;
-    IsotropicMedium _medium;
+    std::shared_ptr<Medium> _medium;
 
     bool isInside(Point2D p)
     {
         return (abs((p._x - _center._x).number()) < (_size._xdim).number() * 0.5)
                && (abs((p._y - _center._y).number()) < (_size._ydim).number() * 0.5);
     }
-    IsotropicMedium getCharacteristics(Point2D p)
+    std::shared_ptr<Medium> getCharacteristics(Point2D p)
     {
         if (isInside(p))
             return this->_medium;
-        return IsotropicMedium(0, 0, 0);
+        return std::make_shared<Medium>(0, 0, 0);
+    };
+
+    double getSigma(Point2D p)
+    {
+        if (isInside(p))
+        {
+            if (dynamic_cast<PML*>(_medium.get()))
+                {
+                    double x_dist = abs(((_center - p)._x).number());
+                    double normilized_to_size = x_dist - _size._xdim.number() * 0.5;
+                    return 0.5 * (normilized_to_size * normilized_to_size);
+                }
+            else
+                return _medium->_sigma;
+        }
+        else
+            return 0.0;
+    };
+
+    double getEpsilon(Point2D p)
+    {
+        if (isInside(p))
+        {
+            if (dynamic_cast<PML*>(_medium.get()))
+            {
+                return 1.0;
+            }
+            else
+                return _medium->_epsilon;
+        }
+        else
+            return 0.0;
+    };
+
+    double getMu(Point2D p)
+    {
+        if (isInside(p))
+        {
+            if (dynamic_cast<PML*>(_medium.get()))
+                return 0.0;
+            else
+                return _medium->_mu;
+        }
+        else
+            return 0.0;
     };
 };
-
 // template <typename T>
 // struct Block2DTestunits
 // {
 //     Point2DUnits<T> _center;
 //     DimensionsUnits2D<T> _size;
 //     IsotropicMedium _medium;
-//     Block2DTestunits(auto cent, auto size): _center(cent), _size(size), _medium { 0.0, 0.0, 0.0 } {};
-//     Block2DTestunits(auto cent, auto size, auto eps, auto mu, auto sigma):
+//     Block2DTestunits(auto cent, auto size): _center(cent), _size(size), _medium { 0.0, 0.0, 0.0
+//     } {}; Block2DTestunits(auto cent, auto size, auto eps, auto mu, auto sigma):
 //         _center(cent), _size(size), _medium { eps, mu, sigma } {};
-//     Block2DTestunits(auto cent, auto size, auto med): _center(cent), _size(size), _medium(med) {};
+//     Block2DTestunits(auto cent, auto size, auto med): _center(cent), _size(size), _medium(med)
+//     {};
 
 // };
 
@@ -200,11 +248,7 @@ class Geometry2D
     Axis _x;
     Axis _y;
 
-    void addBlock(Block2D& b)
-    {
-        _items.push_back(std::make_unique<Block2D>(b));
-        ;
-    };
+    void addBlock(Block2D& b) { _items.push_back(std::make_unique<Block2D>(b)); };
 
     std::vector<std::unique_ptr<Block2D>> _items;
 
@@ -223,17 +267,15 @@ class Geometry2D
                 auto y = _y.getCoord(j);
                 for (auto& block: _items)
                 {
-                    auto mat = block->getCharacteristics(Point2D(x, y));
-                    spdlog::info("[Geometry] Filling geometry: {} {} {:f} {:f} {:f} ",
-                                 i,
-                                 j,
-                                 mat._sigma,
-                                 mat._epsilon,
-                                 mat._mu);
+                    spdlog::info("[Geometry] Filling geometry: x : {:f}  y : {:f}  eps : {:f}",
+                                 x.number(),
+                                 y.number(),
+                                 block->getEpsilon(Point2D(x, y)));
 
-                    _sigma(i, j) += mat._sigma;
-                    _epsilon(i, j) += mat._epsilon;
-                    _mu(i, j) += mat._mu;
+                    _sigma(i, j) += block->getSigma(Point2D(x, y));
+                    _epsilon(i, j) += block->getEpsilon(Point2D(x, y));
+                    _mu(i, j) += block->getMu(Point2D(x, y));
+                    ;
                 }
             });
     }

@@ -34,12 +34,14 @@ x,y = np.meshgrid(python_ax,python_ay)
 s = pr.System2D(ax,ay)
 
 
-block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(5.0,10.0),pr.IsotropicMedium(1.5,0.0,0.0))
+block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(5.0,10.0),pr.IsotropicMedium(3.0,0.0,0.0))
+pml = pr.Block2D(pr.Point2D(7.0,0.0) , pr.Dimensions2D(2.0,10.0),pr.PML())
 #s.addBlock(block)
+s.addBlock(pml)
 
 freq = 2 * np.pi / 2.0
-ampl = 1.0
-plane = pr.PlaneWave2D(freq, ampl, pr.Point2D(-3.0,-4.0), pr.Point2D(1.0,3.0))
+ampl = 10.0
+plane = pr.PlaneWave2D(freq, ampl, pr.Point2D(0.0,0.0), pr.Point2D(1.0,0.0))
 
 s.addSourceEz(plane)
 
@@ -56,9 +58,9 @@ def Gaus(x,y,x0,y0,sigma):
 
 
 #pr.debug_output()
-
-plot_contour = False
+propagation_time = 0.05
 plot_contour = True
+plot_contour = False
 
 if plot_contour:
 
@@ -82,7 +84,7 @@ else:
 def animate(i):
     plt.cla()
 
-    s.propagate(0.1)
+    s.propagate(propagation_time)
 
     if plot_contour:
         z = s.get(Ez)[1::sparse_index,1::sparse_index]

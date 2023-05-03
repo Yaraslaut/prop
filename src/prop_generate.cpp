@@ -39,9 +39,11 @@ PYBIND11_MODULE(pyprop, m)
         .export_values();
 
     py::class_<Prop::IsotropicMedium>(m, "IsotropicMedium").def(py::init<double, double, double>());
+    py::class_<Prop::PML>(m, "PML").def(py::init<>());
 
     py::class_<Prop::Block2D>(m, "Block2D")
         .def(py::init<Prop::Point2D, Prop::Dimensions2D, Prop::IsotropicMedium>())
+        .def(py::init<Prop::Point2D, Prop::Dimensions2D, Prop::PML>())
         .def(py::init<Prop::Point2D, Prop::Dimensions2D>());
 
     py::class_<Prop::System2D>(m, "System2D")

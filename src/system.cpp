@@ -31,7 +31,7 @@ void Prop::System2D::propagateFixedTime(double time_step)
                 auto y = _geometry._y.getCoord(j);
                 for (auto& sourceEz: _sources_Ez)
                 {
-                    _field._Ez(i, j) += sourceEz->getField(_time, Point2D { x, y }) * time_step;
+                    _field._Ez(i, j) += sourceEz->getField(_time, Point2D { x, y }) * time_step / _space_step;
                 }
             });
     };
