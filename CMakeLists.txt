@@ -36,14 +36,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(PyKokkosbase)
 find_package(Python3 COMPONENTS Development)
 
-# ---- Add spdlog ----
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG        v1.11.0
-)
-FetchContent_MakeAvailable(spdlog)
-
 # ---- Add Catch2 ----
 # Catch2::Catch2WithMain
 FetchContent_Declare(
@@ -56,7 +48,6 @@ FetchContent_MakeAvailable(Catch2)
 
 set(External_linked_libraries
   Kokkos::kokkos
-  spdlog::spdlog
   Eigen3::Eigen
 )
 
@@ -78,8 +69,7 @@ add_library(
 )
 
 target_link_libraries(prop_lib PUBLIC
-  Kokkos::kokkos
-  Eigen3::Eigen
+  ${External_linked_libraries}
 )
 
 include_directories(

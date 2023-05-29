@@ -35,10 +35,8 @@ class System2D
         // x_step *0.5 / Const_c;
         //      _step_size_factor = 0.5; //_time_step * Const_c / _x_step;
         _resolution = 1.0; // lambda_characteristic / _x_step
-        ///spdlog::info("[System] created with size : {:d} {:d}", x._N, y._N);
         if (!Kokkos::is_initialized())
         {
-            // spdlog::debug("[TwoDimensionalSystem] Initializing Kokkos...");
             Kokkos::initialize();
         }
     };

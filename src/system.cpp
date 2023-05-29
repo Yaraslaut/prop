@@ -24,7 +24,7 @@
 void Prop::System2D::propagateCustom(double totalTime)
 {
     double max_time_step = _courant / Const_c / std::sqrt(2.0 / _space_step / _space_step);
-    // spdlog::info("max_time_step is {:f}", max_time_step);
+
     if (totalTime < max_time_step)
         return propagateFixedTime(totalTime);
     double accumulated_time_step { 0.0 };

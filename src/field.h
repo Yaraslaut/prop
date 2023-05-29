@@ -18,7 +18,6 @@
 
 #include <KokkosExp_InterOp.hpp>
 #include <cstdint>
-//#include <spdlog/spdlog.h>
 
 namespace Prop
 {

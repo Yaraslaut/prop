@@ -64,11 +64,11 @@ PYBIND11_MODULE(pyprop, m)
     });
 
     m.def("debug_output", []() {
-        //spdlog::set_level(spdlog::level::debug); // Set global log level to info
+
     });
 
     m.def("info_output", []() {
-        //spdlog::set_level(spdlog::level::info); // Set global log level to info
+
     });
 
     static auto _atexit = []() {

@@ -18,7 +18,6 @@
 #include "types.h"
 
 #include <memory>
-// #include <spdlog/spdlog.h>
 #include <type_traits>
 
 namespace Prop
@@ -235,7 +234,6 @@ class Geometry2D
 
     void fillGeometryFromEntity()
     {
-        // spdlog::info("Filling geometry");
         Kokkos::parallel_for(
             "[geometry] fill with initial values",
             SimplePolicy2D({ 0, 0 }, { _x._N, _y._N }),
