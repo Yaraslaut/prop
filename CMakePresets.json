@@ -61,7 +61,8 @@
         "Kokkos_ENABLE_OPENMP": "OFF",
         "Kokkos_ENABLE_THREADS" : "OFF",
         "Kokkos_ENABLE_SERIAL": "ON",
-        "Kokkos_ENABLE_CUDA" : "ON"
+        "Kokkos_ENABLE_CUDA" : "ON",
+        "Kokkos_ARCH_VOLTA70" : "ON"
       }
     },
 
