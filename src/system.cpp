@@ -21,52 +21,29 @@
 
 // #include "Kokkos_Complex.hpp"
 #include <cmath>
-void Prop::System2D::propagateCustom(double totalTime)
+void Prop::System2D::propagateCustom(double total_time)
 {
-    double max_time_step = _courant / Const_c / std::sqrt(2.0 / _space_step / _space_step);
-
-    if (totalTime < max_time_step)
-        return propagateFixedTime(totalTime);
+    if (total_time < _stable_time_step)
+        return propagateFixedTime(total_time);
     double accumulated_time_step { 0.0 };
-    while (accumulated_time_step < totalTime)
+    while (accumulated_time_step < total_time)
     {
-        accumulated_time_step += max_time_step;
-        propagateFixedTime(max_time_step);
+        accumulated_time_step += _stable_time_step;
+        propagateFixedTime(_stable_time_step);
     }
 }
 void Prop::System2D::propagateFixedTime(double time_step)
 {
 
-    auto courant { Const_c * time_step * std::sqrt(2.0 / _space_step / _space_step) };
-
-    auto update_from_source = [&]() {
-        Kokkos::parallel_for(
-            "update electric field", _field.getPolicy(), KOKKOS_LAMBDA(int i, int j) {
-                auto x = _geometry._x.getCoord(i);
-                auto y = _geometry._y.getCoord(j);
-                auto Ez = _field._Ez.template view<typename GridData2D_dual::host_mirror_space>();
-                for (auto& sourceEz: _sources_Ez)
-                {
-                    Ez(i, j) += sourceEz->getField(_time, Point2D { x, y }) * time_step;
-                }
-                _field._Ez.modify<Kokkos::DefaultHostExecutionSpace>();
-            });
-    };
-
-
-    if (_firstTime)
+    if (_first_time)
     {
-        _firstTime = false;
+        _first_time = false;
         this->_geometry.fillGeometryFromEntity();
     };
-
-    //update_from_source();
-
 
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateFromPlaneWave<GridData2D_dual::execution_space>(
                              _field._Ez, _field._Hx, _field._Hy, _time, time_step));
-
 
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateMagneticFieldFreeSpace<GridData2D_dual::execution_space>(
@@ -76,7 +53,6 @@ void Prop::System2D::propagateFixedTime(double time_step)
                          updateElectricFieldFreeSpace<GridData2D_dual::execution_space>(
                              _field._Ez, _field._Hx, _field._Hy, time_step, _space_step));
     Kokkos::fence();
-
 
     _time += time_step;
     std::cout << "time is " << _time << '\n';

@@ -19,6 +19,7 @@
 #include "sources.h"
 #include "types.h"
 
+#include <limits>
 #include <memory>
 namespace Prop
 {
@@ -29,16 +30,25 @@ class System2D
     using Components = Components2DTM;
 
   public:
-    System2D(Axis x, Axis y): _geometry(x, y), _field(x._N, y._N)
+    System2D(Axis x, Axis y)
     {
-        _space_step = x.dx; // lambda_characteristic / resolution
-        // x_step *0.5 / Const_c;
-        //      _step_size_factor = 0.5; //_time_step * Const_c / _x_step;
-        _resolution = 1.0; // lambda_characteristic / _x_step
+        double fmax { Const_c / Const_scaling_factor }; // TODO
+        double pts_per_wavelength { 5.0 };
+        _resolution = pts_per_wavelength;
+        _space_step = Const_c / (pts_per_wavelength * fmax); // lambda_characteristic / resolution
+        std::cout << _space_step << std::endl;
+        double factor { Const_c / Const_standard_courant_factor };
+        _stable_time_step = _space_step / Const_standard_courant_factor;
+
         if (!Kokkos::is_initialized())
         {
             Kokkos::initialize();
         }
+
+        x.calcN(_space_step);
+        y.calcN(_space_step);
+        _geometry = Geometry2D(x, y);
+        _field = Grid2DRectangular(x._N, y._N);
     };
 
     const External_data& getExternal(Components comp) { return _field.getExternal(comp); }
@@ -48,14 +58,17 @@ class System2D
 
     void addSourceEz(PlaneWave2D& pw) { _sources_Ez.push_back(std::make_unique<PlaneWave2D>(pw)); }
 
-    void propagateCustom(double);
-    void propagateFixedTime(double);
-    void propagate() { propagateCustom(_courant * Const_c / std::sqrt(2.0 / _space_step / _space_step)); }
+    void propagateCustom(double total_time);
+    void propagateFixedTime(double time_step);
+    void propagate() { propagateCustom(_stable_time_step); }
+
+    int getNx() { return static_cast<int>(_geometry._x._N); }
+    int getNy() { return static_cast<int>(_geometry._y._N); }
 
   private:
-    bool _firstTime { true };
+    bool _first_time { true };
     double _time { 0.0 };
-    double _courant { 0.5 };
+    double _stable_time_step = std::numeric_limits<double>::signaling_NaN();
     double _resolution = std::numeric_limits<double>::signaling_NaN();
     //    double _step_size_factor;
     double _space_step = std::numeric_limits<double>::signaling_NaN();
