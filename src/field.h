@@ -106,17 +106,18 @@ struct GridSubView
     using Components = Components2DTM;
     using Span = Kokkos::pair<int, int>;
 
-    using SubviewType = Kokkos::Subview < GridData, std::pair<int, int>, std::pair<int, int>;
+    using SubviewType = Kokkos::Subview<GridData2D_dual, std::pair<int, int>, std::pair<int,int>>;
 
+    GridSubView() = default;
     GridSubView(Span x, Span y)
     {
         _policy = SimplePolicy2D({ 0, 0 }, { x.second - x.first, y.second - y.first });
         _device_policy = DevicePolicy2D({ 0, 0 }, { x.second - x.first, y.second - y.first });
     };
 
-    GridData _Ez;
-    GridData _Hx;
-    GridData _Hy;
+    SubviewType _Ez;
+    SubviewType _Hx;
+    SubviewType _Hy;
     SimplePolicy2D _policy;
     DevicePolicy2D _device_policy;
 };
