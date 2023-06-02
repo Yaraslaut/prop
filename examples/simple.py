@@ -10,26 +10,16 @@ def show(x,y):
     plt.show()
 
 pr.initialize()
-nx = 100
 x_min = -10.0
 x_max = 10.0
 
-ny = 100
 y_min = -10.0
 y_max = 10.0
 
 sparse_index = 1
 
-ax = pr.Axis(x_min,x_max,nx)
-ay = pr.Axis(y_min,y_max,ny)
-
-python_ax =  np.linspace(x_min,x_max,int(nx/sparse_index))
-python_ay = np.linspace(y_min,y_max,int(ny/sparse_index))
-if sparse_index == 1 :
-    python_ax =  np.linspace(x_min,x_max,int(nx))
-    python_ay = np.linspace(y_min,y_max,int(ny))
-
-x,y = np.meshgrid(python_ax,python_ay)
+ax = pr.Axis(x_min,x_max)
+ay = pr.Axis(y_min,y_max)
 
 s = pr.System2D(ax,ay)
 
@@ -38,7 +28,7 @@ block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(1.0,1.0),pr.IsotropicMe
 #s.addBlock(block)
 
 freq = 2 * np.pi / 2.0
-ampl = 1.0
+ampl = 10.0
 plane = pr.PlaneWave2D(freq, ampl, pr.Point2D(-3.0,-4.0), pr.Point2D(1.0,0.0))
 
 s.addSourceEz(plane)
@@ -48,18 +38,29 @@ Hx = pr.Component2D.Hx
 Hy = pr.Component2D.Hy
 
 
-#can change Ex and then call s.update_Ex()
+nx = s.nx();
+ny = s.ny();
 
-def Gaus(x,y,x0,y0,sigma):
-    return np.exp ( - ((x-x0)**2 + (y-y0)**2) / sigma )
-
+print(nx)
+print(ny)
 
 z = s.get(Ez)
 print(z)
-s.propagate(0.1)
+#s.propagate(0.1)
 z = s.get(Ez)
 print(z)
 
+
+
+
+
+python_ax =  np.linspace(x_min,x_max,int(nx/sparse_index))
+python_ay = np.linspace(y_min,y_max,int(ny/sparse_index))
+if sparse_index == 1 :
+    python_ax =  np.linspace(x_min,x_max,int(nx))
+    python_ay = np.linspace(y_min,y_max,int(ny))
+
+x,y = np.meshgrid(python_ax,python_ay)
 
 
 #pr.debug_output()
@@ -89,7 +90,7 @@ else:
 def animate(i):
     plt.cla()
 
-    s.propagate(0.1)
+    s.propagate(1e-7)
 
     if plot_contour:
         z = s.get(Ez)[1::sparse_index,1::sparse_index]

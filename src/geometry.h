@@ -34,17 +34,14 @@ struct AxisUnits
 {
     l_unit _min;
     l_unit _max;
-    index _N = 1;
-    double dx = 0.;
+    index _N = std::numeric_limits<index>::signaling_NaN();
+    double dx = std::numeric_limits<double>::signaling_NaN();
     AxisUnits(): _min(0.0), _max(0.0) {};
-    AxisUnits(double min, double max, index n): _min(l_unit(min)), _max(l_unit(max)), _N(n)
-    {
-        dx = (_max - _min) / static_cast<double>(_N);
-    };
-    AxisUnits(double min, double max): _min(l_unit(min)), _max(l_unit(max))
-    {
-        dx = (_max - _min) / static_cast<double>(_N);
-    };
+    AxisUnits(double min, double max):
+        _min(l_unit(min * Const_scaling_factor)), _max(l_unit(max * Const_scaling_factor)) {};
+
+    void calcN(double space_step) { _N = static_cast<int>((_max - _min) / space_step); }
+
     KOKKOS_INLINE_FUNCTION
     l_unit getCoord(index i) { return _min + l_unit(dx * i); }
     KOKKOS_INLINE_FUNCTION

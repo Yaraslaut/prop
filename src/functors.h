@@ -194,13 +194,15 @@ struct updateFromPlaneWave
     void operator()(const int i, const int j) const
     {
 
-        auto some_function = [](int i, int j)->double
-        {
-            if(i==30)
-                return 1.0;
-            return 0.0;
+        auto some_function = [](int i, int j) -> double {
+            auto exp = [](double x, double sigma) -> double {
+                return Kokkos::exp(-0.5 * Kokkos::pow(x / sigma, 2.0))
+                       / (sigma * Kokkos::sqrt(2 * Kokkos::numbers::pi));
+            };
+            return exp(i - 50, 1.0) * exp(j - 50, 1.0);
         };
-        Ez(i, j) += some_function(i,j) * Kokkos::cos(_time * 2.0 * Kokkos::numbers::pi / 3.0) * _time_step;
+        double freq = 2.0 * Kokkos::numbers::pi / 1e-6;
+        Ez(i, j) += some_function(i, j) * Kokkos::cos(_time * freq) * _time_step;
     }
 };
 

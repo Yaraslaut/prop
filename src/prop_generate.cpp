@@ -30,7 +30,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(pyprop, m)
 {
 
-    py::class_<Prop::Axis>(m, "Axis").def(py::init<double, double, Prop::index>());
+    py::class_<Prop::Axis>(m, "Axis").def(py::init<double, double>());
     py::class_<Prop::Point2D>(m, "Point2D").def(py::init<double, double>());
     py::class_<Prop::Dimensions2D>(m, "Dimensions2D").def(py::init<double, double>());
     py::class_<Prop::PlaneWave2D>(m, "PlaneWave2D")
@@ -54,6 +54,8 @@ PYBIND11_MODULE(pyprop, m)
         .def("propagate", &Prop::System2D::propagate)
         .def("propagate", &Prop::System2D::propagateCustom)
         .def("addBlock", &Prop::System2D::addBlock)
+        .def("nx", &Prop::System2D::getNx)
+        .def("ny", &Prop::System2D::getNy)
         .def("addSourceEz", &Prop::System2D::addSourceEz);
 
     m.def("initialize", []() {
