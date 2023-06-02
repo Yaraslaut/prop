@@ -23,7 +23,6 @@ TEST_CASE("Two dimensional system")
 {
     if (!Kokkos::is_initialized())
     {
-//        spdlog::debug("Initializing Kokkos...");
         Kokkos::initialize();
     }
 
@@ -35,9 +34,48 @@ TEST_CASE("Two dimensional system")
 
     while(Kokkos::is_initialized())
         Kokkos::finalize();
-
 }
 
+TEST_CASE("Create Box")
+{
+    Prop::Axis ax { -1.0, 1.0, 100 };
+    Prop::Axis ay { -1.0, 1.0, 100 };
+    Prop::Point2D c { 0.0, 0.0 };
+    Prop::Box box(ax, ay, c);
+    REQUIRE(true);
+}
+
+TEST_CASE("Create Free Space Entity")
+{
+    Prop::Axis ax { -1.0, 1.0, 100 };
+    Prop::Axis ay { -1.0, 1.0, 100 };
+    Prop::Point2D c { 0.0, 0.0 };
+    Prop::Box box(ax, ay, c);
+
+    if (!Kokkos::is_initialized())
+    {
+        Kokkos::initialize();
+    }
+
+    Prop::FreeSpaceEntity<Kokkos::DefaultHostExecutionSpace, Kokkos::Serial> freespace(box);
+    REQUIRE(true);
+}
+
+TEST_CASE("Create Source Entity")
+{
+    Prop::Axis ax { -1.0, 1.0, 100 };
+    Prop::Axis ay { -1.0, 1.0, 100 };
+    Prop::Point2D c { 0.0, 0.0 };
+    Prop::Box box(ax, ay, c);
+
+    if (!Kokkos::is_initialized())
+    {
+        Kokkos::initialize();
+    }
+
+    Prop::SourceEntity<Kokkos::DefaultHostExecutionSpace, Kokkos::Serial> source(box);
+    REQUIRE(true);
+}
 
 TEST_CASE("Last call to finalize")
 {

@@ -24,21 +24,30 @@ namespace Prop
 {
 
 /*
-** Axis in one dimension
-** does not have any orientation
-** and defines length via _min and _max coordinates
+** main structure for Axis
+** used to create basis system
+** axis has finite length and
+** defined via _min and _max coordinates
 ** with N points in this range
+** template is used to add dimensional units
+** to the structure maybe
 */
 template <typename T>
 struct AxisUnits
 {
     l_unit _min;
     l_unit _max;
-    index _N = std::numeric_limits<index>::signaling_NaN();
+    index _N = 1;
     double dx = std::numeric_limits<double>::signaling_NaN();
     AxisUnits(): _min(0.0), _max(0.0) {};
     AxisUnits(double min, double max):
         _min(l_unit(min * Const_scaling_factor)), _max(l_unit(max * Const_scaling_factor)) {};
+
+    AxisUnits(double min, double max, index N):
+        _min(l_unit(min * Const_scaling_factor)), _max(l_unit(max * Const_scaling_factor)), _N(N)
+    {
+        dx = (_max - _min) / static_cast<double>(N);
+    };
 
     void calcN(double space_step) { _N = static_cast<int>((_max - _min) / space_step); }
 
@@ -58,18 +67,6 @@ struct AxisUnits
 using Axis = AxisUnits<basic_length_unit>;
 
 /*
-** bounding box of entity for 3D space
-*/
-template <typename T>
-struct DimensionsUnits3D
-{
-    l_unit _xdim;
-    l_unit _ydim;
-    l_unit _zdim;
-    DimensionsUnits3D(double x, double y, double z): _xdim(l_unit(x)), _ydim(l_unit(y)), _zdim(l_unit(z)) {};
-};
-
-/*
 ** bounding box of entity for 2D space
 */
 template <typename T>
@@ -82,24 +79,6 @@ struct DimensionsUnits2D
 };
 
 using Dimensions2D = DimensionsUnits2D<basic_length_unit>;
-
-/*
-** point in 3d space with
-** x,y,z cordinates
-** tempalte argument from units::isq::si::
-** represents one unit of length
-*/
-template <typename T>
-struct Point3DUnits
-{
-    l_unit _x;
-    l_unit _y;
-    l_unit _z;
-    Point3DUnits(double x, double y, double z): _x(l_unit(x)), _y(l_unit(y)), _z(l_unit(z)) {};
-    Point3DUnits(): _x(0.0), _y(0.0), _z(0.0) {};
-};
-
-using Point3D = Point3DUnits<basic_length_unit>;
 
 /*
 ** point in 2d space with
@@ -124,31 +103,17 @@ struct Point2DUnits
     bool operator<(DimensionsUnits2D<T>& other) { return (_x < other._xdim) && (_y < other._ydim); }
 };
 
-using Point3D = Point3DUnits<basic_length_unit>;
 using Point2D = Point2DUnits<basic_length_unit>;
 
 /*
- * scalar product funciton for 2d vectors
+ * scalar product of vectors
  */
 
 template <typename T>
 double dot(Point2DUnits<T>& f, Point2DUnits<T>& s)
 {
-    return (f._x * s._x + f._y * s._y);
+    return f._x * s._x + f._y * s._y;
 }
-
-/*
-** base class for entity in 2D space
-*/
-// struct Entity2D
-// {
-//     Entity2D(): _medium { 0.0, 0.0, 0.0 } {};
-//     Entity2D(auto medium): _medium(medium) {};
-//     Entity2D(auto eps, auto mu, auto sigma): _medium { eps, mu, sigma } {};
-
-//     virtual IsotropicMedium getCharacteristics(Point2D p) = 0;
-//     virtual ~Entity2D();
-// };
 
 struct Block2D
 {
@@ -213,6 +178,8 @@ class Geometry2D
             }
     };
 
+    void fillGeometryFromEntity() {}
+
     double get_step() { return std::min(_x.dx, _y.dx); };
     Axis _x;
     Axis _y;
@@ -229,40 +196,27 @@ class Geometry2D
     Field_data_type getEpsilon(index i, index j) { return _epsilon(i, j); };
     Field_data_type getMu(index i, index j) { return _mu(i, j); };
 
-    void fillGeometryFromEntity()
-    {
-        Kokkos::parallel_for(
-            "[geometry] fill with initial values",
-            SimplePolicy2D({ 0, 0 }, { _x._N, _y._N }),
-            KOKKOS_LAMBDA(const int& i, const int& j) {
-                auto x = _x.getCoord(i);
-                auto y = _y.getCoord(j);
-                for (auto& block: _items)
-                {
-                    auto mat = block->getCharacteristics(Point2D(x, y));
-
-                    _sigma(i, j) += mat._sigma;
-                    _epsilon(i, j) += mat._epsilon;
-                    _mu(i, j) += mat._mu;
-                }
-            });
-    }
-
-    void getPMLFactor(index i, index j)
-    {
-        auto x = _x.getCoord(i);
-        auto y = _y.getCoord(j);
-        double sigma { 0.2 };
-        double aw { 0.1 };
-        double epsilon { 1.0 };
-        double omega { 1.0 };
-        auto c = 1.0 + sigma / (aw + std::complex<double>(0.0, 1.0) * epsilon * omega);
-    }
-
   private:
     GridData _sigma;
     GridData _epsilon;
     GridData _mu;
+};
+
+struct Box
+{
+    Axis _x;
+    Axis _y;
+    Point2D _center;
+
+    Box(Axis x, Axis y, Point2D c): _x(x), _y(y), _center(c) {};
+};
+
+struct GeometryInBox
+{
+    Box _box;
+    double _space_step;
+
+    GeometryInBox(Box box, double sp): _box(box), _space_step(sp) {};
 };
 
 } // namespace Prop

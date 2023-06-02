@@ -15,10 +15,12 @@
 #pragma once
 
 #include "field.h"
+#include "functors.h"
 #include "geometry.h"
 #include "sources.h"
 #include "types.h"
 
+#include <functional>
 #include <limits>
 #include <memory>
 namespace Prop
@@ -78,4 +80,68 @@ class System2D
     std::vector<std::unique_ptr<PlaneWave2D>> _sources_Ez;
     Grid2DRectangular _field;
 };
+
+template <class ExecutionSpace, typename ExecutionPolicy>
+struct Entity
+{
+    typedef ExecutionSpace _execution_space;
+    typedef ExecutionPolicy _execution_policy;
+
+    virtual void propagateFixedTime(double);
+
+    bool _first_time { true };
+    GeometryInBox _geometry;
+    GridSubView _local_field;
+    std::function<void(double)> _local_propagator;
+    Entity(Box box, double space_step): _geometry(box, space_step) {};
+    virtual ~Entity();
+};
+
+template <class ExecutionSpace, class ExecutionPolicy>
+struct FreeSpaceEntity: public Entity<ExecutionSpace, ExecutionPolicy>
+{
+    using BaseEntity = Entity<ExecutionSpace, ExecutionPolicy>;
+    FreeSpaceEntity(Box box): BaseEntity(box)
+    {
+        this->_local_propagator = [this](double time_step) {
+            Kokkos::parallel_for(BaseEntity::_execution_policy(),
+                                 updateMagneticFieldFreeSpace<typename BaseEntity::_execution_space>(
+                                     this->_local_field._Ez,
+                                     this->_local_field._Hx,
+                                     this->_field._Hy,
+                                     time_step,
+                                     this->_geometry->_space_step));
+            Kokkos::parallel_for(BaseEntity::_execution_policy(),
+                                 updateElectricFieldFreeSpace<typename BaseEntity::_execution_space>(
+                                     this->_local_field._Ez,
+                                     this->_local_field._Hx,
+                                     this->_field._Hy,
+                                     time_step,
+                                     this->_geometry->_space_step));
+
+            Kokkos::fence();
+        };
+    };
+};
+
+template <class ExecutionSpace, class ExecutionPolicy>
+struct PointSourceEntity: public Entity<ExecutionSpace, ExecutionPolicy>
+{
+    using BaseEntity = Entity<ExecutionSpace, ExecutionPolicy>;
+    double freq;
+    PointSourceEntity(Box box): BaseEntity(box)
+    {
+
+        this->_local_propagator = [this](double time_step) {
+            Kokkos::parallel_for(
+                BaseEntity::_execution_policy(),
+                updateFromPlaneWave<typename BaseEntity::_execution_space>(this->_local_field._Ez,
+                                                                           this->_local_field._Hx,
+                                                                           this->_field._Hy,
+                                                                           time_step,
+                                                                           this->_geometry->_space_step));
+        };
+    };
+};
+
 } // namespace Prop

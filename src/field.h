@@ -99,4 +99,26 @@ struct Grid2DRectangular
     index _ny;
 };
 
+struct GridSubView
+{
+    using GridData = GridData2D_dual;
+    using External_data = External2D_data;
+    using Components = Components2DTM;
+    using Span = Kokkos::pair<int, int>;
+
+    using SubviewType = Kokkos::Subview < GridData, std::pair<int, int>, std::pair<int, int>;
+
+    GridSubView(Span x, Span y)
+    {
+        _policy = SimplePolicy2D({ 0, 0 }, { x.second - x.first, y.second - y.first });
+        _device_policy = DevicePolicy2D({ 0, 0 }, { x.second - x.first, y.second - y.first });
+    };
+
+    GridData _Ez;
+    GridData _Hx;
+    GridData _Hy;
+    SimplePolicy2D _policy;
+    DevicePolicy2D _device_policy;
+};
+
 } // namespace Prop

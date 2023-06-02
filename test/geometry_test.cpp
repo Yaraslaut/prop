@@ -12,14 +12,13 @@
  * limitations under the License.
  */
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cstddef>
 #include <field.h>
 #include <geometry.h>
 #include <system.h>
 #include <types.h>
-
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <cstddef>
 
 using micro = Prop::basic_length_unit;
 
@@ -28,41 +27,25 @@ using micro = Prop::basic_length_unit;
 TEST_CASE("Axis")
 {
     Prop::Axis t(-1.0, 1.0, 100);
-    TEST_QUANT(t._min, -1.0);
+    TEST_QUANT(t._min, -1.0 * Prop::Const_scaling_factor);
 
-    TEST_QUANT(t._max, 1.0);
+    TEST_QUANT(t._max, 1.0 * Prop::Const_scaling_factor);
     REQUIRE(t._N == 100);
 
     Prop::Axis t2(-1.0, 1.0);
-    TEST_QUANT(t2._min, -1.0);
-    TEST_QUANT(t2._max, 1.0);
+    TEST_QUANT(t2._min, -1.0 * Prop::Const_scaling_factor);
+    TEST_QUANT(t2._max, 1.0 * Prop::Const_scaling_factor);
     REQUIRE(t2._N == 1);
 
     Prop::Axis t3 {};
-    TEST_QUANT(t3._min, 0.0);
-    TEST_QUANT(t3._max, 0.0);
+    TEST_QUANT(t3._min, 0.0 * Prop::Const_scaling_factor);
+    TEST_QUANT(t3._max, 0.0 * Prop::Const_scaling_factor);
     REQUIRE(t3._N == 1);
 
     Prop::Axis t4 { -1.0, 1.0, 10 };
-    TEST_QUANT(t4._min, -1.0);
-    TEST_QUANT(t4._max, 1.0);
+    TEST_QUANT(t4._min, -1.0 * Prop::Const_scaling_factor);
+    TEST_QUANT(t4._max, 1.0 * Prop::Const_scaling_factor);
     REQUIRE(t4._N == 10);
-}
-
-TEST_CASE("Point")
-{
-    Prop::Point3D t(11.0, 1.0, 2.0);
-    TEST_QUANT(t._x, 11.0);
-    TEST_QUANT(t._y, 1.0);
-    TEST_QUANT(t._z, 2.0);
-}
-
-TEST_CASE("Dimensions 3D")
-{
-    Prop::DimensionsUnits3D<Prop::basic_length_unit> size(1.0, 2.0, 3.0);
-    TEST_QUANT(size._xdim, 1.0);
-    TEST_QUANT(size._ydim, 2.0);
-    TEST_QUANT(size._zdim, 3.0);
 }
 
 TEST_CASE("Dimensions 2D")
