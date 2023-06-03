@@ -41,9 +41,10 @@ void Prop::System2D::propagateFixedTime(double time_step)
         this->_geometry.fillGeometryFromEntity();
     };
 
-    Kokkos::parallel_for(_field.getDevicePolicy(),
-                         updateFromPlaneWave<GridData2D_dual::execution_space>(
-                             _field._Ez, _field._Hx, _field._Hy, _time, time_step));
+    for(auto& p : _entities_point_source)
+    {
+        p->Propagator(_time, time_step, _field);
+    }
 
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateMagneticFieldFreeSpace<GridData2D_dual::execution_space>(

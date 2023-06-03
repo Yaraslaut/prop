@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "Kokkos_Core_fwd.hpp"
 #include "field.h"
 #include "functors.h"
 #include "geometry.h"
@@ -26,73 +27,22 @@
 namespace Prop
 {
 
-template <class ExecutionSpace>
-struct Entity
+struct PointSource
 {
-    virtual void propagateFixedTime(double);
 
-    bool _first_time { true };
-    GeometryInBox _geometry;
-    GridSubView _local_field;
-    std::function<void(double)> _local_propagator;
-    Entity(Box box, double space_step, Grid2DRectangular global_grid): _geometry(box, space_step),_local_field()
-    {
-        auto bounds_x = std::pair(5, 10);
-        auto bounds_y = std::pair(5, 10);
-        _local_field._Ez = Kokkos::subview(global_grid._Ez.h_view, bounds_x, bounds_y);
-        _local_field._Hx = Kokkos::subview(global_grid._Hx.h_view, bounds_x, bounds_y);
-        _local_field._Hy = Kokkos::subview(global_grid._Hy.h_view, bounds_x, bounds_y);
-    };
-    virtual ~Entity();
-};
+    using view_type = GridData2D_dual;
+    using ExecutionSpace =  Kokkos::DefaultExecutionSpace;
+    typedef typename std::conditional<std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
+                                      view_type::memory_space,
+                                      view_type::host_mirror_space>::type memory_space;
 
-template <class ExecutionSpace>
-struct FreeSpaceEntity: public Entity<ExecutionSpace>
-{
-    using BaseEntity = Entity<ExecutionSpace>;
-    FreeSpaceEntity(Box box, double space_step, Grid2DRectangular global_grid):
-        BaseEntity(box, space_step, global_grid)
-    {
-        this->_local_propagator = [this](double time_step) {
-            Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecutionSpace>(),
-                                 updateMagneticFieldFreeSpace<ExecutionSpace>(this->_local_field._Ez,
-                                                                              this->_local_field._Hx,
-                                                                              this->_field._Hy,
-                                                                              time_step,
-                                                                              this->_geometry->_space_step));
-            Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecutionSpace>(),
-                                 updateElectricFieldFreeSpace<ExecutionSpace>(this->_local_field._Ez,
-                                                                              this->_local_field._Hx,
-                                                                              this->_field._Hy,
-                                                                              time_step,
-                                                                              this->_geometry->_space_step));
-
-            Kokkos::fence();
-        };
-    };
-};
-
-template <class ExecutionSpace>
-struct PointSourceEntity: public Entity<ExecutionSpace>
-{
-    using BaseEntity = Entity<ExecutionSpace>;
-    double freq;
-    PointSourceEntity(Box box, double space_step, Grid2DRectangular global_grid):
-        BaseEntity(box, space_step, global_grid)
-    {
-
-        this->_local_propagator = [this](double time_step) {
-            Kokkos::parallel_for(Kokkos::MDRangePolicy<Kokkos::Rank<2>, ExecutionSpace>({ 0, 0 }, { 10, 10 }),
-                                 [](int i, int j) {}
-
-            );
-
-            // updateFromPlaneWave<ExecutionSpace>(this->_local_field._Ez,
-            //                                                            this->_local_field._Hx,
-            //                                                            this->_local_field._Hy,
-            //                                                            time_step,
-            //                                                            this->_geometry._space_step));
-        };
+    int _x_coord;
+    int _y_coord;
+    double _freq;
+    PointSource(int x, int y, double freq):_x_coord(x), _y_coord(y), _freq(freq) {};
+    void Propagator(double time, double time_step, Grid2DRectangular global_field) {
+        auto Ez = global_field._Ez.view<memory_space>();
+        Ez(_x_coord,_y_coord) += Kokkos::cos(_freq * time) * time_step;
     };
 };
 
@@ -101,9 +51,6 @@ class System2D
     using GridData = GridData2D_host;
     using External_data = External2D_data;
     using Components = Components2DTM;
-
-    using ExecSpace = Kokkos::DefaultHostExecutionSpace;
-    using ExecPolicy = SimplePolicy2D;
 
   public:
     System2D(Axis x, Axis y)
@@ -126,10 +73,9 @@ class System2D
         _geometry = Geometry2D(x, y);
         _field = Grid2DRectangular(x._N, y._N);
 
-        // PYBIND FAILS TODO
-        // PointSourceEntity<ExecSpace> point_source(
-        //     Box(Axis(-0.5, -0.4), Axis(-1.0, 1.0), Point2D(0.0, 0.0)), _space_step, _field);
-        // _entities.push_back(std::make_unique<Entity<ExecSpace>>(point_source));
+        auto freq = 2.0 * Kokkos::numbers::pi  / 1e-61;
+        PointSource point_source(50,50, freq);
+        _entities_point_source.push_back(std::make_unique<PointSource>(point_source));
     };
 
     const External_data& getExternal(Components comp) { return _field.getExternal(comp); }
@@ -157,7 +103,7 @@ class System2D
 
     std::vector<std::unique_ptr<PlaneWave2D>> _sources_Ez;
 
-    std::vector<std::unique_ptr<Entity<ExecSpace>>> _entities;
+    std::vector<std::unique_ptr<PointSource>> _entities_point_source;
 
     Grid2DRectangular _field;
 };
