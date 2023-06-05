@@ -38,7 +38,7 @@ struct AxisUnits
     l_unit _min;
     l_unit _max;
     index _N = 1;
-    double dx = std::numeric_limits<double>::signaling_NaN();
+    double dx = std::numeric_limits<double>::signaling_NaN(); // TODO
     AxisUnits(): _min(0.0), _max(0.0) {};
     AxisUnits(double min, double max):
         _min(l_unit(min * Const_scaling_factor)), _max(l_unit(max * Const_scaling_factor)) {};

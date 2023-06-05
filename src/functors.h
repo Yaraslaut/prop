@@ -138,7 +138,7 @@ struct updateElectricFieldFreeSpace
         auto C_ezhx { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
         auto C_ezhy { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
 
-        int N = 100;
+        int N = 100; // TODO
         auto getIndex = [](int ind, int N) {
             if (ind == -1)
                 return N - 1;

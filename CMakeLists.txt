@@ -52,12 +52,14 @@ set(External_linked_libraries
 )
 
 
-# # Compiler options
-# add_compile_options(
-#   $<$<CONFIG:DEBUG>:-g3>
-#   $<$<CONFIG:DEBUG>:-Og>
-#   $<$<CONFIG:RELEASE>:-O3>
-# )
+if(!Kokkos_ENABLE_CUDA)
+# Compiler options
+add_compile_options(
+  $<$<CONFIG:DEBUG>:-g3>
+  $<$<CONFIG:DEBUG>:-Og>
+  $<$<CONFIG:RELEASE>:-O3>
+)
+endif()
 
 
 

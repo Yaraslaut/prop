@@ -101,7 +101,7 @@ def animate(i):
         con = ax.contourf(x,y,np.transpose(z),10, cmap='plasma');
     else:
         ax.plot(s.get(Ez)[:,50])
-        ax.set_ylim(-ampl,ampl)
+        ax.set_ylim(-1.0,1.0)
 
 
 
