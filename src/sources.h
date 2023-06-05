@@ -17,15 +17,39 @@
 #include "field.h"
 #include "geometry.h"
 #include "prop.h"
+#include "types.h"
 
 namespace Prop
 {
 
 struct Source
 {
+    virtual ~Source() = 0;
+    virtual void Propagator(double time, double time_step, Grid2DRectangular global_field) = 0;
+};
+struct PointSource
+{
+
+    using view_type = GridData2D_dual;
+    using ExecutionSpace = Kokkos::DefaultExecutionSpace;
+    typedef typename std::conditional<std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
+                                      view_type::memory_space,
+                                      view_type::host_mirror_space>::type memory_space;
+
+    int _x_coord;
+    int _y_coord;
+    double _freq;
+    PointSource(int x, int y, double freq): _x_coord(x), _y_coord(y), _freq(freq) {};
+    void Propagator(double time, double time_step, Grid2DRectangular global_field)
+    {
+        auto Ez = global_field._Ez.view<memory_space>();
+        global_field._Ez.sync<memory_space>();
+        Ez(_x_coord, _y_coord) += Kokkos::cos(_freq * time) * time_step;
+        global_field._Ez.modify<memory_space>();
+    };
 };
 
-struct PlaneWave2D: Source
+struct PlaneWave
 {
     // Plane _plane;
     double _freq;
@@ -33,20 +57,27 @@ struct PlaneWave2D: Source
     Point2D _center;
     Point2D _direction;
 
-    PlaneWave2D(double f, double am, Point2D cen, Point2D dir):
+    using view_type = GridData2D_dual;
+    using ExecutionSpace = Kokkos::DefaultExecutionSpace;
+    typedef typename std::conditional<std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
+                                      view_type::memory_space,
+                                      view_type::host_mirror_space>::type memory_space;
+
+    PlaneWave(double f, double am, Point2D cen, Point2D dir):
         _freq(f), _amplitude(am), _center(cen), _direction(dir) {};
 
-    double getField(double time, Point2D point)
+    void  Propagator(double time, double time_step, Grid2DRectangular global_field)
     {
-
-        auto res = _amplitude * std::cos(time * _freq);
-
-        auto vecToCenter = point - _center;
-        double scalarProd = dot(vecToCenter, _direction);
-        if (abs(scalarProd) < 0.1) // TODO ARBITRARY NUMBER
-            return res;
-        return 0.0;
+        auto Ez = global_field._Ez.view<memory_space>();
+        auto amplitude = _amplitude;
+        auto freq = _freq;
+        auto pos = 20;
+        Kokkos::parallel_for(global_field.getDevicePolicy(),KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
+                if(iinit==pos)
+                    Ez(iinit,jinit) += amplitude * Kokkos::cos(freq * time) * time_step;
+            });
     }
 };
+
 
 } // namespace Prop

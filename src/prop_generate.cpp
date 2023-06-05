@@ -33,7 +33,7 @@ PYBIND11_MODULE(pyprop, m)
     py::class_<Prop::Axis>(m, "Axis").def(py::init<double, double>());
     py::class_<Prop::Point2D>(m, "Point2D").def(py::init<double, double>());
     py::class_<Prop::Dimensions2D>(m, "Dimensions2D").def(py::init<double, double>());
-    py::class_<Prop::PlaneWave2D>(m, "PlaneWave2D")
+    py::class_<Prop::PlaneWave>(m, "PlaneWave")
         .def(py::init<double, double, Prop::Point2D, Prop::Point2D>());
 
     py::enum_<Prop::Components2DTM>(m, "Component2D")

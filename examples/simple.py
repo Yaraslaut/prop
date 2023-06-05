@@ -29,7 +29,7 @@ block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(1.0,1.0),pr.IsotropicMe
 
 freq = 2 * np.pi / 2.0
 ampl = 10.0
-plane = pr.PlaneWave2D(freq, ampl, pr.Point2D(-3.0,-4.0), pr.Point2D(1.0,0.0))
+plane = pr.PlaneWave(freq, ampl, pr.Point2D(-3.0,-4.0), pr.Point2D(1.0,0.0))
 
 s.addSourceEz(plane)
 
