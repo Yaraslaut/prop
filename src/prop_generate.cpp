@@ -35,6 +35,8 @@ PYBIND11_MODULE(pyprop, m)
     py::class_<Prop::Dimensions2D>(m, "Dimensions2D").def(py::init<double, double>());
     py::class_<Prop::PlaneWave>(m, "PlaneWave")
         .def(py::init<double, double, Prop::Point2D, Prop::Point2D>());
+    py::class_<Prop::PointSource>(m, "PointSource")
+        .def(py::init<double, double, Prop::Point2D>());
 
     py::enum_<Prop::Components2DTM>(m, "Component2D")
         .value("Ez", Prop::Components2DTM::Ez)
@@ -50,13 +52,15 @@ PYBIND11_MODULE(pyprop, m)
 
     py::class_<Prop::System2D>(m, "System2D")
         .def(py::init<Prop::Axis, Prop::Axis>())
+        .def(py::init<Prop::Axis, Prop::Axis, int>())
         .def("get", &Prop::System2D::getExternal, py::return_value_policy::reference_internal)
         .def("propagate", &Prop::System2D::propagate)
         .def("propagate", &Prop::System2D::propagateCustom)
         .def("addBlock", &Prop::System2D::addBlock)
         .def("nx", &Prop::System2D::getNx)
         .def("ny", &Prop::System2D::getNy)
-        .def("addSourceEz", &Prop::System2D::addSourceEz);
+        .def("addSourceEz", py::overload_cast<Prop::PlaneWave&>(&Prop::System2D::addSourceEz))
+        .def("addSourceEz", py::overload_cast<Prop::PointSource&>(&Prop::System2D::addSourceEz));
 
     m.def("initialize", []() {
         if (!Kokkos::is_initialized())

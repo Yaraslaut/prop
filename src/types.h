@@ -23,9 +23,9 @@ namespace Prop
 {
 constexpr double Const_epsilon0 = 8.85418782 * 1e-12;
 constexpr double Const_mu0 = 4.0 * Kokkos::numbers::pi * 1e-7;
-constexpr double Const_c = 299792457.95971;
+constexpr double Const_c = 1.0;//299792457.95971;
 constexpr double Const_standard_courant_factor = 1.0; // 84853;
-constexpr double Const_scaling_factor = 1e-6;         // TODO
+constexpr double Const_scaling_factor = 1.0;//1e-6;         // TODO
 
 using index = int; // uint_fast16_t;
 
@@ -45,4 +45,6 @@ using External_data_type = Field_data_type;
 using External2D_data = Eigen::Matrix<External_data_type, Eigen::Dynamic, Eigen::Dynamic>;
 
 using Vec = Eigen::Vector3d;
-}; // namespace Prop
+
+
+} // namespace Prop

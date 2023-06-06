@@ -10,11 +10,11 @@ def show(x,y):
     plt.show()
 
 pr.initialize()
-x_min = -10.0
-x_max = 10.0
+x_min = -50.0
+x_max = 50.0
 
-y_min = -10.0
-y_max = 10.0
+y_min = -50.0
+y_max = 50.0
 
 sparse_index = 1
 
@@ -23,20 +23,26 @@ ay = pr.Axis(y_min,y_max)
 
 s = pr.System2D(ax,ay)
 
-
 block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(1.0,1.0),pr.IsotropicMedium(1.5,0.0,0.0))
 #s.addBlock(block)
 
 freq = 2 * np.pi / 2.0
 ampl = 10.0
-plane = pr.PlaneWave(freq, ampl, pr.Point2D(-3.0,-4.0), pr.Point2D(1.0,0.0))
+plane = pr.PlaneWave(freq, 0.1 * ampl, pr.Point2D(-30.0,-4.0), pr.Point2D(1.0,0.0))
+points = []
+points.append(pr.PointSource(freq, ampl, pr.Point2D(30.0,-4.0)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(-30.0,-4.0)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(30.0,4.0)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(-30.0,4.0)))
 
-s.addSourceEz(plane)
+
+#s.addSourceEz(plane)
+for p in points:
+    s.addSourceEz(p)
 
 Ez = pr.Component2D.Ez
 Hx = pr.Component2D.Hx
 Hy = pr.Component2D.Hy
-
 
 nx = s.nx();
 ny = s.ny();
@@ -50,10 +56,6 @@ print(z)
 z = s.get(Ez)
 print(z)
 
-
-
-
-
 python_ax =  np.linspace(x_min,x_max,int(nx/sparse_index))
 python_ay = np.linspace(y_min,y_max,int(ny/sparse_index))
 if sparse_index == 1 :
@@ -61,7 +63,6 @@ if sparse_index == 1 :
     python_ay = np.linspace(y_min,y_max,int(ny))
 
 x,y = np.meshgrid(python_ax,python_ay)
-
 
 #pr.debug_output()
 
@@ -90,7 +91,7 @@ else:
 def animate(i):
     plt.cla()
 
-    s.propagate(1e-7)
+    s.propagate(0.1)
 
     if plot_contour:
         z = s.get(Ez)[1::sparse_index,1::sparse_index]

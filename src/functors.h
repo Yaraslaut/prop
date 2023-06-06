@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "sources.h"
 #include "types.h"
 
 #include <Kokkos_Core.hpp>
@@ -37,11 +36,14 @@ struct updateMagneticFieldFreeSpace
     Kokkos::View<Field_data_type**, memory_space> Ez;
     Kokkos::View<Field_data_type**, memory_space> Hx;
     Kokkos::View<Field_data_type**, memory_space> Hy;
+    int _nx;
+    int _ny;
+
     double time_step;
     double space_step;
 
-    updateMagneticFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace):
-        time_step(dt), space_step(dspace)
+    updateMagneticFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace, int nx, int ny):
+        time_step(dt), space_step(dspace), _nx(nx),_ny(ny)
     {
 
         Ez = dv_Ez.view<memory_space>();
@@ -70,7 +72,6 @@ struct updateMagneticFieldFreeSpace
         auto C_hyh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
         auto C_hye { one_over_one_plus_sigma_mu * time_step / (mu * space_step) };
 
-        int N = 100;
         auto getIndex = [](int ind, int N) {
             if (ind == -1)
                 return N - 1;
@@ -79,13 +80,11 @@ struct updateMagneticFieldFreeSpace
             return ind;
         };
 
-        int i = getIndex(iinit, N);
-        int ipo = getIndex(iinit + 1, N);
+        int i = getIndex(iinit, _nx);
+        int ipo = getIndex(iinit + 1, _nx);
 
-        int j = getIndex(jinit, N);
-        int jpo = getIndex(jinit + 1, N);
-
-
+        int j = getIndex(jinit, _ny);
+        int jpo = getIndex(jinit + 1, _ny);
 
         Hx(i, j) = C_hxh * Hx(i, j) - C_hxe * (Ez(i, jpo) - Ez(i, j));
         Hy(i, j) = C_hyh * Hy(i, j) + C_hye * (Ez(ipo, j) - Ez(i, j));
@@ -106,11 +105,13 @@ struct updateElectricFieldFreeSpace
     Kokkos::View<Field_data_type**, memory_space> Ez;
     Kokkos::View<Field_data_type**, memory_space> Hx;
     Kokkos::View<Field_data_type**, memory_space> Hy;
+    int _nx;
+    int _ny;
     double _time_step;
     double _space_step;
 
-    updateElectricFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace):
-        _time_step(dt), _space_step(dspace)
+    updateElectricFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace, int nx, int ny):
+        _time_step(dt), _space_step(dspace), _nx(nx),_ny(ny)
     {
 
         Ez = dv_Ez.view<memory_space>();
@@ -137,8 +138,6 @@ struct updateElectricFieldFreeSpace
                      / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) };
         auto C_ezhx { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
         auto C_ezhy { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
-
-        int N = 100; // TODO
         auto getIndex = [](int ind, int N) {
             if (ind == -1)
                 return N - 1;
@@ -147,11 +146,11 @@ struct updateElectricFieldFreeSpace
             return ind;
         };
 
-        int i = getIndex(iinit, N);
-        int imo = getIndex(iinit - 1, N);
+        int i = getIndex(iinit, _nx);
+        int imo = getIndex(iinit - 1, _nx);
 
-        int j = getIndex(jinit, N);
-        int jmo = getIndex(jinit - 1, N);
+        int j = getIndex(jinit, _ny);
+        int jmo = getIndex(jinit - 1, _ny);
 
         Ez(i, j) = C_eze * Ez(i, j) + C_ezhx * (Hy(i, j) - Hy(imo, j)) - C_ezhy * (Hx(i, j) - Hx(i, jmo));
     }

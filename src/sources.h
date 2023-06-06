@@ -22,11 +22,8 @@
 namespace Prop
 {
 
-struct Source
-{
-    virtual ~Source() = 0;
-    virtual void Propagator(double time, double time_step, Grid2DRectangular global_field) = 0;
-};
+class System2D;
+
 struct PointSource
 {
 
@@ -36,15 +33,17 @@ struct PointSource
                                       view_type::memory_space,
                                       view_type::host_mirror_space>::type memory_space;
 
-    int _x_coord;
-    int _y_coord;
     double _freq;
-    PointSource(int x, int y, double freq): _x_coord(x), _y_coord(y), _freq(freq) {};
-    void Propagator(double time, double time_step, Grid2DRectangular global_field)
+    double _amplitude;
+    Point2D _center;
+    PointSource(double f, double am, Point2D center): _freq(f), _amplitude(am), _center(center) {};
+    void Propagator(double time, double time_step, Grid2DRectangular global_field, Geometry2D& global_geometry)
     {
         auto Ez = global_field._Ez.view<memory_space>();
         global_field._Ez.sync<memory_space>();
-        Ez(_x_coord, _y_coord) += Kokkos::cos(_freq * time) * time_step;
+        auto x_index = global_geometry._x.getIndex(_center._x);
+        auto y_index = global_geometry._y.getIndex(_center._y);
+        Ez(x_index, y_index) += _amplitude * Kokkos::cos(_freq * time) * time_step;
         global_field._Ez.modify<memory_space>();
     };
 };
@@ -66,18 +65,18 @@ struct PlaneWave
     PlaneWave(double f, double am, Point2D cen, Point2D dir):
         _freq(f), _amplitude(am), _center(cen), _direction(dir) {};
 
-    void  Propagator(double time, double time_step, Grid2DRectangular global_field)
+    void Propagator(double time, double time_step, Grid2DRectangular global_field, Geometry2D& global_geometry)
     {
         auto Ez = global_field._Ez.view<memory_space>();
         auto amplitude = _amplitude;
         auto freq = _freq;
-        auto pos = 20;
-        Kokkos::parallel_for(global_field.getDevicePolicy(),KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
-                if(iinit==pos)
-                    Ez(iinit,jinit) += amplitude * Kokkos::cos(freq * time) * time_step;
+        auto pos = global_geometry._x.getIndex(_center._x);
+        Kokkos::parallel_for(
+            global_field.getDevicePolicy(), KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
+                if (iinit == pos)
+                    Ez(iinit, jinit) += amplitude * Kokkos::cos(freq * time) * time_step;
             });
     }
 };
-
 
 } // namespace Prop

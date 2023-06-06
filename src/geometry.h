@@ -16,7 +16,6 @@
 #include "Kokkos_Macros.hpp"
 #include "medium.h"
 #include "types.h"
-
 #include <memory>
 #include <type_traits>
 
@@ -49,19 +48,14 @@ struct AxisUnits
         dx = (_max - _min) / static_cast<double>(N);
     };
 
-    void calcN(double space_step) { _N = static_cast<int>((_max - _min) / space_step); }
+    void calcN(double space_step) {
+        dx = space_step;
+        _N = static_cast<int>((_max - _min) / space_step); }
 
     KOKKOS_INLINE_FUNCTION
     l_unit getCoord(index i) { return _min + l_unit(dx * i); }
-    KOKKOS_INLINE_FUNCTION
-    index getIndex(index i)
-    {
-        if (i == -1)
-            return _N - 1;
-        if (i == _N)
-            return 0;
-        return i;
-    }
+    index getIndex(l_unit x) {
+        return static_cast<index>((x - _min) / dx); }
 };
 
 using Axis = AxisUnits<basic_length_unit>;

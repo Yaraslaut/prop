@@ -18,9 +18,9 @@
 #include "field.h"
 #include "functors.h"
 #include "geometry.h"
+#include "pml.h"
 #include "sources.h"
 #include "types.h"
-#include "pml.h"
 
 #include <functional>
 #include <limits>
@@ -35,12 +35,12 @@ class System2D
     using Components = Components2DTM;
 
   public:
-    System2D(Axis x, Axis y)
+    System2D(Axis x, Axis y, double pts_per_wavelength = 5)
     {
         double fmax { Const_c / Const_scaling_factor }; // TODO
-        double pts_per_wavelength { 5.0 };
         _resolution = pts_per_wavelength;
-        _space_step = Const_c / (pts_per_wavelength * fmax); // lambda_characteristic / resolution
+        _space_step = Const_c / (pts_per_wavelength * fmax);
+        // lambda_characteristic / resolution
         std::cout << _space_step << std::endl;
         double factor { Const_c / Const_standard_courant_factor };
         _stable_time_step = _space_step / Const_standard_courant_factor;
@@ -55,22 +55,24 @@ class System2D
         _geometry = Geometry2D(x, y);
         _field = Grid2DRectangular(x._N, y._N);
 
-        auto freq = 2.0 * Kokkos::numbers::pi / 1e-6;
-        PointSource point_source(60, 60, freq);
-        _entities_point_source.push_back(std::make_unique<PointSource>(point_source));
+        // auto freq = 2.0 * Kokkos::numbers::pi / 1e-6;
+        // PointSource point_source(60, 60, freq);
+        // _entities_point_source.push_back(std::make_unique<PointSource>(point_source));
 
-        freq = 1.0 * 2.0 * Kokkos::numbers::pi / 1e-6;
-        PlaneWave plane_wave(freq, 1.0, Point2D(0.0,0.0), Point2D(0.0,0.0));
-        _entities_plane_wave.push_back(std::make_unique<PlaneWave>(plane_wave));
-
-
+        // freq = 1.0 * 2.0 * Kokkos::numbers::pi / 1e-6;
+        // PlaneWave plane_wave(freq, 1.0, Point2D(0.0,0.0), Point2D(0.0,0.0));
+        // _entities_plane_wave.push_back(std::make_unique<PlaneWave>(plane_wave));
     };
 
     const External_data& getExternal(Components comp) { return _field.getExternal(comp); }
 
     SimplePolicy2D getPolicy() { return _field.getPolicy(); }
     void addBlock(Block2D& block) { _geometry.addBlock(block); };
-    void addSourceEz(PlaneWave& pw) { _sources_Ez.push_back(std::make_unique<PlaneWave>(pw)); }
+    void addSourceEz(PlaneWave& pw) {
+        _entities_plane_wave.push_back(std::make_unique<PlaneWave>(pw)); }
+    void addSourceEz(PointSource& pw) {
+        _entities_point_source.push_back(std::make_unique<PointSource>(pw));
+    }
 
     void propagateCustom(double total_time);
     void propagateFixedTime(double time_step);
@@ -88,12 +90,11 @@ class System2D
     double _space_step = std::numeric_limits<double>::signaling_NaN();
 
     Geometry2D _geometry;
+    Grid2DRectangular _field;
 
-    std::vector<std::unique_ptr<PlaneWave>> _sources_Ez;
     std::vector<std::unique_ptr<PointSource>> _entities_point_source;
     std::vector<std::unique_ptr<PlaneWave>> _entities_plane_wave;
     std::vector<std::unique_ptr<PMLregion>> _entities_pml_region;
-    Grid2DRectangular _field;
 };
 
 } // namespace Prop
