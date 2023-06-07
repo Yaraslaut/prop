@@ -31,6 +31,7 @@ enum class Components2DTM
 
 struct Grid2DRectangular
 {
+    using GridDataIndex = GridData2DIndex_dual;
     using GridData = GridData2D_dual;
     using External_data = External2D_data;
     using Components = Components2DTM;
@@ -44,6 +45,9 @@ struct Grid2DRectangular
         _Hx = GridData("field_Hx", _nx, _ny);
         _Hy = GridData("field_Hy", _nx, _ny);
 
+        _which_entity = GridDataIndex("type of entity", _nx, _ny);
+
+
         _external = External_data(_nx, _ny);
 
         _policy = SimplePolicy2D({ 0, 0 }, { _nx, _ny });
@@ -52,6 +56,7 @@ struct Grid2DRectangular
         auto host_Ez = _Ez.h_view;
         auto host_Hx = _Hx.h_view;
         auto host_Hy = _Hy.h_view;
+        auto host_entity = _which_entity.h_view;
 
         for (int i = 0; i < _nx; i++)
         {
@@ -60,6 +65,7 @@ struct Grid2DRectangular
                 host_Ez(i, j) = 0.0;
                 host_Hx(i, j) = 0.0;
                 host_Hy(i, j) = 0.0;
+                host_entity(i,j) = 0;
             }
         }
     };
@@ -89,6 +95,8 @@ struct Grid2DRectangular
     DevicePolicy2D getDevicePolicy() { return _device_policy; }
 
     External_data _external;
+
+    GridDataIndex _which_entity;
 
     GridData _Ez;
     GridData _Hx;

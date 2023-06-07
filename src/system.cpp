@@ -46,20 +46,23 @@ void Prop::System2D::propagateFixedTime(double time_step)
         p->Propagator(_time, time_step, this->_field,this->_geometry);
     }
 
-
     for(auto& p : _entities_plane_wave)
     {
         p->Propagator(_time, time_step, this->_field,this->_geometry);
     }
 
+    for(auto& p : _entities_material)
+    {
+        p->Propagator(_time, time_step, this->_field,this->_geometry);
+    }
 
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateMagneticFieldFreeSpace<GridData2D_dual::execution_space>(
-                             _field._Ez, _field._Hx, _field._Hy, time_step, _space_step, _geometry._x._N,_geometry._y._N));
+                             _field, time_step, _space_step, _geometry._x._N,_geometry._y._N));
 
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateElectricFieldFreeSpace<GridData2D_dual::execution_space>(
-                             _field._Ez, _field._Hx, _field._Hy, time_step, _space_step, _geometry._x._N,_geometry._y._N));
+                             _field, time_step, _space_step, _geometry._x._N,_geometry._y._N));
 
     Kokkos::fence();
 

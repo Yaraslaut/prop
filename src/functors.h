@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "field.h"
 #include "types.h"
 
 #include <Kokkos_Core.hpp>
@@ -36,41 +37,36 @@ struct updateMagneticFieldFreeSpace
     Kokkos::View<Field_data_type**, memory_space> Ez;
     Kokkos::View<Field_data_type**, memory_space> Hx;
     Kokkos::View<Field_data_type**, memory_space> Hy;
+    Kokkos::View<index**, memory_space> entity_ind;
+
     int _nx;
     int _ny;
 
     double time_step;
     double space_step;
 
-    updateMagneticFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace, int nx, int ny):
+    updateMagneticFieldFreeSpace(Grid2DRectangular global_field, double dt, double dspace, int nx, int ny):
         time_step(dt), space_step(dspace), _nx(nx),_ny(ny)
     {
 
-        Ez = dv_Ez.view<memory_space>();
-        Hx = dv_Hx.view<memory_space>();
-        Hy = dv_Hy.view<memory_space>();
+        Ez = global_field._Ez.view<memory_space>();
+        Hx = global_field._Hx.view<memory_space>();
+        Hy = global_field._Hy.view<memory_space>();
+        entity_ind = global_field._which_entity.view<memory_space>();
 
-        dv_Ez.sync<memory_space>();
-        dv_Hx.sync<memory_space>();
-        dv_Hy.sync<memory_space>();
+        global_field._Ez.sync<memory_space>();
+        global_field._Hx.sync<memory_space>();
+        global_field._Hy.sync<memory_space>();
+        global_field._which_entity.sync<memory_space>();
 
         // Mark Hx and Hy as modified
-        dv_Hx.modify<memory_space>();
-        dv_Hy.modify<memory_space>();
+        global_field._Hx.modify<memory_space>();
+        global_field._Hy.modify<memory_space>();
     }
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const int iinit, const int jinit) const
     {
-
-        auto mu { 1.0 };
-        auto sigma { 0.0 };
-
-        auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * time_step) / (2.0 * mu)) };
-        auto C_hxh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
-        auto C_hxe { one_over_one_plus_sigma_mu * time_step / (mu * space_step) };
-        auto C_hyh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
-        auto C_hye { one_over_one_plus_sigma_mu * time_step / (mu * space_step) };
 
         auto getIndex = [](int ind, int N) {
             if (ind == -1)
@@ -86,8 +82,21 @@ struct updateMagneticFieldFreeSpace
         int j = getIndex(jinit, _ny);
         int jpo = getIndex(jinit + 1, _ny);
 
-        Hx(i, j) = C_hxh * Hx(i, j) - C_hxe * (Ez(i, jpo) - Ez(i, j));
-        Hy(i, j) = C_hyh * Hy(i, j) + C_hye * (Ez(ipo, j) - Ez(i, j));
+
+        if(entity_ind(i,j) == 0)
+        {
+            auto mu { 1.0 };
+            auto sigma { 0.0 };
+
+            auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * time_step) / (2.0 * mu)) };
+            auto C_hxh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
+            auto C_hxe { one_over_one_plus_sigma_mu * time_step / (mu * space_step) };
+            auto C_hyh { one_over_one_plus_sigma_mu * (1.0 - (sigma * time_step) / (2.0 * mu)) };
+            auto C_hye { one_over_one_plus_sigma_mu * time_step / (mu * space_step) };
+
+            Hx(i, j) = C_hxh * Hx(i, j) - C_hxe * (Ez(i, jpo) - Ez(i, j));
+            Hy(i, j) = C_hyh * Hy(i, j) + C_hye * (Ez(ipo, j) - Ez(i, j));
+        }
     }
 };
 
@@ -105,39 +114,35 @@ struct updateElectricFieldFreeSpace
     Kokkos::View<Field_data_type**, memory_space> Ez;
     Kokkos::View<Field_data_type**, memory_space> Hx;
     Kokkos::View<Field_data_type**, memory_space> Hy;
+    Kokkos::View<index**, memory_space> entity_ind;
+
     int _nx;
     int _ny;
     double _time_step;
     double _space_step;
 
-    updateElectricFieldFreeSpace(view_type dv_Ez, view_type dv_Hx, view_type dv_Hy, double dt, double dspace, int nx, int ny):
+    updateElectricFieldFreeSpace(Grid2DRectangular global_field, double dt, double dspace, int nx, int ny):
         _time_step(dt), _space_step(dspace), _nx(nx),_ny(ny)
     {
 
-        Ez = dv_Ez.view<memory_space>();
-        Hx = dv_Hx.view<memory_space>();
-        Hy = dv_Hy.view<memory_space>();
+        Ez = global_field._Ez.view<memory_space>();
+        Hx = global_field._Hx.view<memory_space>();
+        Hy = global_field._Hy.view<memory_space>();
+        entity_ind = global_field._which_entity.view<memory_space>();
 
-        dv_Ez.sync<memory_space>();
-        dv_Hx.sync<memory_space>();
-        dv_Hy.sync<memory_space>();
+        global_field._Ez.sync<memory_space>();
+        global_field._Hx.sync<memory_space>();
+        global_field._Hy.sync<memory_space>();
+        global_field._which_entity.sync<memory_space>();
 
         // Mark Hx and Hy as modified
-        dv_Ez.modify<memory_space>();
+        global_field._Hx.modify<memory_space>();
+        global_field._Hy.modify<memory_space>();
     }
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const int iinit, const int jinit) const
     {
-
-        auto mu { 1.0 };
-        auto sigma { 0.0 };
-        auto epsilon { 1.0 };
-        auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * _time_step) / (2.0 * mu)) };
-        auto C_eze { (1.0 - (sigma * _time_step) / (2.0 * epsilon))
-                     / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) };
-        auto C_ezhx { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
-        auto C_ezhy { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
         auto getIndex = [](int ind, int N) {
             if (ind == -1)
                 return N - 1;
@@ -152,7 +157,20 @@ struct updateElectricFieldFreeSpace
         int j = getIndex(jinit, _ny);
         int jmo = getIndex(jinit - 1, _ny);
 
-        Ez(i, j) = C_eze * Ez(i, j) + C_ezhx * (Hy(i, j) - Hy(imo, j)) - C_ezhy * (Hx(i, j) - Hx(i, jmo));
+
+        if(entity_ind(i,j) == 0)
+        {
+            auto mu { 1.0 };
+            auto sigma { 0.0 };
+            auto epsilon { 1.0 };
+            auto one_over_one_plus_sigma_mu { 1.0 / (1.0 + (sigma * _time_step) / (2.0 * mu)) };
+            auto C_eze { (1.0 - (sigma * _time_step) / (2.0 * epsilon))
+            / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) };
+            auto C_ezhx { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
+            auto C_ezhy { _time_step / (1.0 + (sigma * _time_step) / (2.0 * epsilon)) / (epsilon * _space_step) };
+
+            Ez(i, j) = C_eze * Ez(i, j) + C_ezhx * (Hy(i, j) - Hy(imo, j)) - C_ezhy * (Hx(i, j) - Hx(i, jmo));
+        }
     }
 };
 

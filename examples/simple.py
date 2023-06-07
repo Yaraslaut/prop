@@ -10,11 +10,11 @@ def show(x,y):
     plt.show()
 
 pr.initialize()
-x_min = -50.0
-x_max = 50.0
+x_min = -20.0
+x_max = 20.0
 
-y_min = -50.0
-y_max = 50.0
+y_min = -20.0
+y_max = 20.0
 
 sparse_index = 1
 
@@ -23,17 +23,25 @@ ay = pr.Axis(y_min,y_max)
 
 s = pr.System2D(ax,ay)
 
-block = pr.Block2D(pr.Point2D(5.0,0.0) , pr.Dimensions2D(1.0,1.0),pr.IsotropicMedium(1.5,0.0,0.0))
-#s.addBlock(block)
+blocks = []
+blocks.append(pr.Block_IsotropicMedium(pr.Axis(-10.0,10.0) , pr.Axis(-10.0,10.0),4.1,0.0,1.0))
+blocks.append(pr.Block_IsotropicMedium(pr.Axis(-5.0,5.0) , pr.Axis(-5.0,5.0),3.0,0.0,3.0))
 
-freq = 2 * np.pi / 2.0
+for b in blocks:
+    s.addBlock(b)
+
+
+freq = 2 * np.pi / 8.0
 ampl = 10.0
-plane = pr.PlaneWave(freq, 0.1 * ampl, pr.Point2D(-30.0,-4.0), pr.Point2D(1.0,0.0))
+
+pos_x = 11
+pos_y = 11
+
 points = []
-points.append(pr.PointSource(freq, ampl, pr.Point2D(30.0,-4.0)))
-points.append(pr.PointSource(freq, ampl, pr.Point2D(-30.0,-4.0)))
-points.append(pr.PointSource(freq, ampl, pr.Point2D(30.0,4.0)))
-points.append(pr.PointSource(freq, ampl, pr.Point2D(-30.0,4.0)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(pos_x,-pos_y)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(-pos_x,-pos_y)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(pos_x,pos_y)))
+points.append(pr.PointSource(freq, ampl, pr.Point2D(-pos_x,pos_y)))
 
 
 #s.addSourceEz(plane)
@@ -77,7 +85,7 @@ if plot_contour:
     z = s.get(Ez)[1::sparse_index,1::sparse_index]
     if sparse_index == 1:
             z = s.get(Ez)[:,:]
-    con = ax.contourf(x,y,np.transpose(z), 10, cmap='plasma')
+    con = ax.contourf(x,y,np.transpose(z), 10)
     #cb = fig.colorbar(con)
 else:
     fig = plt.figure()
@@ -91,7 +99,7 @@ else:
 def animate(i):
     plt.cla()
 
-    s.propagate(0.1)
+    s.propagate(0.2)
 
     if plot_contour:
         z = s.get(Ez)[1::sparse_index,1::sparse_index]

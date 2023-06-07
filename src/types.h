@@ -34,8 +34,10 @@ using l_unit = double;
 
 using Complex = Kokkos::complex<double>;
 using Field_data_type = double;
+
 using GridData2D_host = Kokkos::View<Field_data_type**>;
 using GridData2D_dual = Kokkos::DualView<Field_data_type**>;
+using GridData2DIndex_dual = Kokkos::DualView<index**>;
 
 using SimplePolicy2D = Kokkos::MDRangePolicy<Kokkos::Rank<2>, Kokkos::DefaultHostExecutionSpace>;
 using DevicePolicy2D = Kokkos::MDRangePolicy<Kokkos::Rank<2>, Kokkos::DefaultExecutionSpace>;

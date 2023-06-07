@@ -44,11 +44,8 @@ PYBIND11_MODULE(pyprop, m)
         .value("Hy", Prop::Components2DTM::Hy)
         .export_values();
 
-    py::class_<Prop::IsotropicMedium>(m, "IsotropicMedium").def(py::init<double, double, double>());
+    py::class_<Prop::IsotropicMedium>(m, "Block_IsotropicMedium").def(py::init<Prop::Axis,Prop::Axis,double, double, double>());
 
-    py::class_<Prop::Block2D>(m, "Block2D")
-        .def(py::init<Prop::Point2D, Prop::Dimensions2D, Prop::IsotropicMedium>())
-        .def(py::init<Prop::Point2D, Prop::Dimensions2D>());
 
     py::class_<Prop::System2D>(m, "System2D")
         .def(py::init<Prop::Axis, Prop::Axis>())

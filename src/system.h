@@ -18,6 +18,7 @@
 #include "field.h"
 #include "functors.h"
 #include "geometry.h"
+#include "medium.h"
 #include "pml.h"
 #include "sources.h"
 #include "types.h"
@@ -43,8 +44,8 @@ class System2D
         // lambda_characteristic / resolution
         std::cout << _space_step << std::endl;
         double factor { Const_c / Const_standard_courant_factor };
-        _stable_time_step = _space_step / Const_standard_courant_factor;
-
+        _stable_time_step = 0.1 * _space_step / Const_standard_courant_factor;
+        std::cout << "stable time step: " << _stable_time_step << std::endl;
         if (!Kokkos::is_initialized())
         {
             Kokkos::initialize();
@@ -54,20 +55,33 @@ class System2D
         y.calcN(_space_step);
         _geometry = Geometry2D(x, y);
         _field = Grid2DRectangular(x._N, y._N);
-
-        // auto freq = 2.0 * Kokkos::numbers::pi / 1e-6;
-        // PointSource point_source(60, 60, freq);
-        // _entities_point_source.push_back(std::make_unique<PointSource>(point_source));
-
-        // freq = 1.0 * 2.0 * Kokkos::numbers::pi / 1e-6;
-        // PlaneWave plane_wave(freq, 1.0, Point2D(0.0,0.0), Point2D(0.0,0.0));
-        // _entities_plane_wave.push_back(std::make_unique<PlaneWave>(plane_wave));
     };
 
     const External_data& getExternal(Components comp) { return _field.getExternal(comp); }
 
     SimplePolicy2D getPolicy() { return _field.getPolicy(); }
-    void addBlock(Block2D& block) { _geometry.addBlock(block); };
+    void addBlock(IsotropicMedium& block) {
+        _max_entity_id++;
+
+        block._entity_id = _max_entity_id;
+        auto props = _geometry.getProperties(block._box);
+        const int x_offset = std::get<0>(props);
+        const int x_size = std::get<1>(props);
+        const int y_offset = std::get<2>(props);
+        const int y_size = std::get<3>(props);
+
+        auto policy = SimplePolicy2D({ 0, 0 }, { x_size, y_size });
+        auto entity_ind = _field._which_entity.view_host();
+        _field._which_entity.sync_host();
+        Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit){
+                const int i = iinit + x_offset;
+                const int j = jinit + y_offset;
+                entity_ind(i,j) = _max_entity_id;
+            });
+        _entities_material.push_back(std::make_unique<IsotropicMedium>(block));
+        _field._which_entity.modify_host();
+
+    };
     void addSourceEz(PlaneWave& pw) {
         _entities_plane_wave.push_back(std::make_unique<PlaneWave>(pw)); }
     void addSourceEz(PointSource& pw) {
@@ -82,6 +96,8 @@ class System2D
     int getNy() { return static_cast<int>(_geometry._y._N); }
 
   private:
+
+    int _max_entity_id{0};
     bool _first_time { true };
     double _time { 0.0 };
     double _stable_time_step = std::numeric_limits<double>::signaling_NaN();
@@ -94,7 +110,7 @@ class System2D
 
     std::vector<std::unique_ptr<PointSource>> _entities_point_source;
     std::vector<std::unique_ptr<PlaneWave>> _entities_plane_wave;
-    std::vector<std::unique_ptr<PMLregion>> _entities_pml_region;
+    std::vector<std::unique_ptr<IsotropicMedium>> _entities_material;
 };
 
 } // namespace Prop
