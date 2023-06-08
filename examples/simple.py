@@ -21,11 +21,13 @@ sparse_index = 1
 ax = pr.Axis(x_min,x_max)
 ay = pr.Axis(y_min,y_max)
 
-s = pr.System2D(ax,ay)
+s = pr.System2D(ax,ay,10)
 
 blocks = []
+
 blocks.append(pr.Block_IsotropicMedium(pr.Axis(-10.0,10.0) , pr.Axis(-10.0,10.0),4.1,0.0,1.0))
 blocks.append(pr.Block_IsotropicMedium(pr.Axis(-5.0,5.0) , pr.Axis(-5.0,5.0),3.0,0.0,3.0))
+blocks.append(pr.Block_PMLRegion(pr.Axis(18.0,19.0) , pr.Axis(-15.0,15.0)))
 
 for b in blocks:
     s.addBlock(b)
@@ -38,11 +40,11 @@ pos_x = 11
 pos_y = 11
 
 points = []
+
 points.append(pr.PointSource(freq, ampl, pr.Point2D(pos_x,-pos_y)))
 points.append(pr.PointSource(freq, ampl, pr.Point2D(-pos_x,-pos_y)))
 points.append(pr.PointSource(freq, ampl, pr.Point2D(pos_x,pos_y)))
 points.append(pr.PointSource(freq, ampl, pr.Point2D(-pos_x,pos_y)))
-
 
 #s.addSourceEz(plane)
 for p in points:
@@ -99,7 +101,7 @@ else:
 def animate(i):
     plt.cla()
 
-    s.propagate(0.2)
+    s.propagate(0.1)
 
     if plot_contour:
         z = s.get(Ez)[1::sparse_index,1::sparse_index]

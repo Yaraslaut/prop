@@ -60,7 +60,8 @@ class System2D
     const External_data& getExternal(Components comp) { return _field.getExternal(comp); }
 
     SimplePolicy2D getPolicy() { return _field.getPolicy(); }
-    void addBlock(IsotropicMedium& block) {
+    void addBlock(IsotropicMedium& block)
+    {
         _max_entity_id++;
 
         block._entity_id = _max_entity_id;
@@ -73,20 +74,43 @@ class System2D
         auto policy = SimplePolicy2D({ 0, 0 }, { x_size, y_size });
         auto entity_ind = _field._which_entity.view_host();
         _field._which_entity.sync_host();
-        Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit){
+        Kokkos::parallel_for(
+            policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
                 const int i = iinit + x_offset;
                 const int j = jinit + y_offset;
-                entity_ind(i,j) = _max_entity_id;
+                entity_ind(i, j) = _max_entity_id;
             });
         _entities_material.push_back(std::make_unique<IsotropicMedium>(block));
         _field._which_entity.modify_host();
-
     };
-    void addSourceEz(PlaneWave& pw) {
-        _entities_plane_wave.push_back(std::make_unique<PlaneWave>(pw)); }
-    void addSourceEz(PointSource& pw) {
-        _entities_point_source.push_back(std::make_unique<PointSource>(pw));
-    }
+
+    void addBlock(PMLRegion& pml_block)
+    {
+        _max_entity_id++;
+
+        pml_block._entity_id = _max_entity_id;
+        auto props = _geometry.getProperties(pml_block._box);
+        const int x_offset = std::get<0>(props);
+        const int x_size = std::get<1>(props);
+        const int y_offset = std::get<2>(props);
+        const int y_size = std::get<3>(props);
+
+        auto policy = SimplePolicy2D({ 0, 0 }, { x_size, y_size });
+        auto entity_ind = _field._which_entity.view_host();
+        _field._which_entity.sync_host();
+        Kokkos::parallel_for(
+            policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
+                const int i = iinit + x_offset;
+                const int j = jinit + y_offset;
+                entity_ind(i, j) = _max_entity_id;
+            });
+        pml_block._Psi_Ez_x = GridData2D_dual("PML region aux field", x_size, y_size);
+        _entities_pml.push_back(std::make_unique<PMLRegion>(pml_block));
+        _field._which_entity.modify_host();
+    };
+
+    void addSourceEz(PlaneWave& pw) { _entities_plane_wave.push_back(std::make_unique<PlaneWave>(pw)); }
+    void addSourceEz(PointSource& pw) { _entities_point_source.push_back(std::make_unique<PointSource>(pw)); }
 
     void propagateCustom(double total_time);
     void propagateFixedTime(double time_step);
@@ -96,8 +120,7 @@ class System2D
     int getNy() { return static_cast<int>(_geometry._y._N); }
 
   private:
-
-    int _max_entity_id{0};
+    int _max_entity_id { 0 };
     bool _first_time { true };
     double _time { 0.0 };
     double _stable_time_step = std::numeric_limits<double>::signaling_NaN();
@@ -110,7 +133,9 @@ class System2D
 
     std::vector<std::unique_ptr<PointSource>> _entities_point_source;
     std::vector<std::unique_ptr<PlaneWave>> _entities_plane_wave;
+
     std::vector<std::unique_ptr<IsotropicMedium>> _entities_material;
+    std::vector<std::unique_ptr<PMLRegion>> _entities_pml;
 };
 
 } // namespace Prop

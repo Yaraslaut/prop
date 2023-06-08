@@ -16,7 +16,6 @@
 
 #include "types.h"
 
-#include <KokkosExp_InterOp.hpp>
 #include <cstdint>
 
 namespace Prop

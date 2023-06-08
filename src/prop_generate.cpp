@@ -45,7 +45,7 @@ PYBIND11_MODULE(pyprop, m)
         .export_values();
 
     py::class_<Prop::IsotropicMedium>(m, "Block_IsotropicMedium").def(py::init<Prop::Axis,Prop::Axis,double, double, double>());
-
+    py::class_<Prop::PMLRegion>(m, "Block_PMLRegion").def(py::init<Prop::Axis, Prop::Axis>());
 
     py::class_<Prop::System2D>(m, "System2D")
         .def(py::init<Prop::Axis, Prop::Axis>())
@@ -53,7 +53,8 @@ PYBIND11_MODULE(pyprop, m)
         .def("get", &Prop::System2D::getExternal, py::return_value_policy::reference_internal)
         .def("propagate", &Prop::System2D::propagate)
         .def("propagate", &Prop::System2D::propagateCustom)
-        .def("addBlock", &Prop::System2D::addBlock)
+        .def("addBlock", py::overload_cast<Prop::IsotropicMedium&>(&Prop::System2D::addBlock))
+        .def("addBlock", py::overload_cast<Prop::PMLRegion&>(&Prop::System2D::addBlock))
         .def("nx", &Prop::System2D::getNx)
         .def("ny", &Prop::System2D::getNy)
         .def("addSourceEz", py::overload_cast<Prop::PlaneWave&>(&Prop::System2D::addSourceEz))
