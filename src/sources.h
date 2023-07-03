@@ -46,9 +46,10 @@ struct PointSource
     {
         auto Ez = global_field._Ez.view<memory_space>();
         global_field._Ez.sync<memory_space>();
+        auto space_step = global_geometry._x.dx;
         auto x_index = global_geometry._x.getIndex(_center._x);
         auto y_index = global_geometry._y.getIndex(_center._y);
-        Ez(x_index, y_index) += _amplitude * Kokkos::cos(_freq * time) * time_step;
+        Ez(x_index, y_index) += _amplitude * Kokkos::cos(_freq * time) * time_step / space_step;
         global_field._Ez.modify<memory_space>();
     };
 };

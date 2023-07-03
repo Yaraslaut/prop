@@ -17,7 +17,7 @@ y_max = 20.0
 ax = pr.Axis(x_min,x_max)
 ay = pr.Axis(y_min,y_max)
 
-s = pr.System2D(ax,ay,10)
+s = pr.System2D(ax,ay,5)
 
 blocks = []
 
@@ -52,8 +52,7 @@ fig, ax = plt.subplots()
 
 z = s.get(Ez)[:,:]
 con = ax.contourf(x,y,np.transpose(z), 10)
-    #cb = fig.colorbar(con)
-
+#cb = fig.colorbar(con)
 
 # Method to update plot
 def animate(i):

@@ -10,7 +10,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+# */
 
 #pragma once
 
@@ -18,6 +18,7 @@
 #include "functors.h"
 #include "geometry.h"
 #include "medium.h"
+#include "pml.h"
 #include "sources.h"
 #include "types.h"
 
@@ -88,6 +89,10 @@ class System2D
 
     void addBlock(PMLRegionX& pml_block)
     {
+
+#ifdef USE_SPDLOG
+        spdlog::debug("added pml X region \n");
+#endif
         _max_entity_id++;
 
         pml_block._entity_id = _max_entity_id;
@@ -110,9 +115,43 @@ class System2D
         pml_block._box._x.calcN(_space_step);
         pml_block._box._y.calcN(_space_step);
         pml_block._Psi_Ez_x = GridData2D_dual("PML region aux field psi_ez_x", x_size, y_size);
-        pml_block._Psi_Hy_x = GridData2D_dual("PML region aux field psi_hx_y", x_size, y_size);
+        pml_block._Psi_Hy_x = GridData2D_dual("PML region aux field psi_hy_x", x_size, y_size);
 
-        _entities_pml.push_back(std::make_unique<PMLRegionX>(pml_block));
+        _entities_pml_x.push_back(std::make_unique<PMLRegionX>(pml_block));
+        _field._which_entity.modify_host();
+    };
+
+    void addBlock(PMLRegionY& pml_block)
+    {
+
+#ifdef USE_SPDLOG
+        spdlog::debug("added pml Y region \n");
+#endif
+        _max_entity_id++;
+
+        pml_block._entity_id = _max_entity_id;
+        auto props = _geometry.getProperties(pml_block._box);
+        const int x_offset = std::get<0>(props);
+        const int x_size = std::get<1>(props);
+        const int y_offset = std::get<2>(props);
+        const int y_size = std::get<3>(props);
+
+        auto policy = SimplePolicy2D({ 0, 0 }, { x_size, y_size });
+        auto entity_ind = _field._which_entity.view_host();
+        auto max_entity_ind = _max_entity_id;
+        _field._which_entity.sync_host();
+        Kokkos::parallel_for(
+            policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
+                const int i = iinit + x_offset;
+                const int j = jinit + y_offset;
+                entity_ind(i, j) = max_entity_ind;
+            });
+        pml_block._box._x.calcN(_space_step);
+        pml_block._box._y.calcN(_space_step);
+        pml_block._Psi_Ez_y = GridData2D_dual("PML region aux field psi_ez_y", x_size, y_size);
+        pml_block._Psi_Hx_y = GridData2D_dual("PML region aux field psi_hx_y", x_size, y_size);
+
+        _entities_pml_y.push_back(std::make_unique<PMLRegionY>(pml_block));
         _field._which_entity.modify_host();
     };
 
@@ -141,7 +180,8 @@ class System2D
     std::vector<std::unique_ptr<PlaneWave>> _entities_plane_wave;
 
     std::vector<std::unique_ptr<IsotropicMedium>> _entities_material;
-    std::vector<std::unique_ptr<PMLRegionX>> _entities_pml;
+    std::vector<std::unique_ptr<PMLRegionX>> _entities_pml_x;
+    std::vector<std::unique_ptr<PMLRegionY>> _entities_pml_y;
 };
 
 } // namespace Prop

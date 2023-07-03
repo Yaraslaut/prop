@@ -74,6 +74,17 @@ void Prop::System2D::propagateFixedTime(double time_step)
         }
     };
 
+    for (auto& p: _entities_pml_x)
+    {
+        p->updatePML(_time, time_step, this->_field, this->_geometry);
+    }
+
+    for (auto& p: _entities_pml_y)
+    {
+        p->updatePML(_time, time_step, this->_field, this->_geometry);
+    }
+
+    // START update of grid
     for (auto& p: _entities_point_source)
     {
         p->Propagator(_time, time_step, this->_field, this->_geometry);
@@ -89,11 +100,6 @@ void Prop::System2D::propagateFixedTime(double time_step)
         p->Propagator(_time, time_step, this->_field, this->_geometry);
     }
 
-    for (auto& p: _entities_pml)
-    {
-        p->updatePML(_time, time_step, this->_field, this->_geometry);
-    }
-
     Kokkos::parallel_for(_field.getDevicePolicy(),
                          updateMagneticFieldFreeSpace<GridData2D_dual::execution_space>(
                              _field, time_step, _space_step, _geometry._x._N, _geometry._y._N));
@@ -102,7 +108,12 @@ void Prop::System2D::propagateFixedTime(double time_step)
                          updateElectricFieldFreeSpace<GridData2D_dual::execution_space>(
                              _field, time_step, _space_step, _geometry._x._N, _geometry._y._N));
 
-    for (auto& p: _entities_pml)
+    for (auto& p: _entities_pml_x)
+    {
+        p->applyPML(_time, time_step, this->_field, this->_geometry);
+    }
+
+    for (auto& p: _entities_pml_y)
     {
         p->applyPML(_time, time_step, this->_field, this->_geometry);
     }
@@ -111,6 +122,6 @@ void Prop::System2D::propagateFixedTime(double time_step)
 
     _time += time_step;
 #ifdef USE_SPDLOG
-    spdlog::debug("time is {} \n", _time);
+    spdlog::info("time is {} \n", _time);
 #endif
 }
