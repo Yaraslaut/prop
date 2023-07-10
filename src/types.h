@@ -16,6 +16,7 @@
 #include <Eigen/Dense>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
+#include <boxed-cpp/boxed.hpp>
 #include <sys/types.h>
 #include <unsupported/Eigen/CXX11/Tensor>
 
@@ -52,5 +53,11 @@ using External_data_type = Field_data_type;
 using External2D_data = Eigen::Matrix<External_data_type, Eigen::Dynamic, Eigen::Dynamic>;
 
 using Vec = Eigen::Vector3d;
-
+namespace tags
+{
+    struct Conductivity
+    {
+    };
+} // namespace tags
+using Conductivity = boxed::boxed<double, tags::Conductivity>;
 } // namespace Prop

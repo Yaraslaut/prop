@@ -53,12 +53,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
+# ---- Add SpdLog ---- #
+FetchContent_Declare(
+  boxed-cpp
+  GIT_REPOSITORY https://github.com/contour-terminal/boxed-cpp.git
+  GIT_TAG        6100165484b3d574b011b68df12e7b966f2759ae
+)
+FetchContent_MakeAvailable(boxed-cpp)
 
 set(External_linked_libraries
   Kokkos::kokkos
   Eigen3::Eigen
+  boxed-cpp
 )
-
 
 # ---- Declare library ----
 
