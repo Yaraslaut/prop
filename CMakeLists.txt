@@ -76,7 +76,8 @@ add_library(
 )
 
 
-# ---- Handle some ycuda issues ----
+# ---- Handle issues with usage of nvcc_wrapper from kokkos ----
+# ---- also at the moment spdlog does not compile with cuda ----
 if(NOT Kokkos_ENABLE_CUDA)
   # Compiler options
   set(External_linked_libraries
@@ -91,8 +92,6 @@ if(NOT Kokkos_ENABLE_CUDA)
   target_compile_definitions(prop_lib PUBLIC
     USE_SPDLOG)
 endif()
-
-
 
 target_link_libraries(prop_lib PUBLIC
   ${External_linked_libraries}
@@ -110,12 +109,7 @@ pybind11_add_module(pyprop
 TARGET_LINK_LIBRARIES(pyprop PUBLIC
   prop_lib
 )
-
-# ---- Declare executable ----
-
-# ---- Declare libraries that use for linking ----
 # ---- Add tests ----
-
 
 set(test_files
   test/system_test.cpp
@@ -139,10 +133,8 @@ add_custom_command(
   COMMAND ${UNIT_TEST}
 )
 
-#target_compile_features(prop_test PRIVATE cxx_std_20) TODO
-
 # ---- CUSTOM COMMAND TO COPY PYTHON EXAMPLE ----
-add_custom_target(copy_python_example_file
+add_custom_target(copy_python_files_in_binary_dir
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/simple.py ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/plane_wave_with_pml_x.py ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/plane_wave_with_pml_y.py ${CMAKE_BINARY_DIR}
@@ -151,11 +143,9 @@ add_custom_target(copy_python_example_file
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/logo/processing.jl ${CMAKE_BINARY_DIR}
 )
 
-
-
 message(STATUS "==============================================================================")
 message(STATUS "    Prop (${PROJECT_VERSION})")
 message(STATUS "------------------------------------------------------------------------------")
-message(STATUS "Build type:                                             ${CMAKE_BUILD_TYPE}")
+message(STATUS "Build type:                                                ${CMAKE_BUILD_TYPE}")
 message(STATUS "------------------------------------------------------------------------------")
 message(STATUS "==============================================================================")

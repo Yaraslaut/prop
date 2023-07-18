@@ -107,6 +107,34 @@
         "Kokkos_ENABLE_OPENMP": "OFF",
         "Kokkos_ENABLE_CUDA" : "ON"
       }
+    },
+
+
+    {
+      "name": "prop-openmp-release",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ENABLE_CUDA" : "OFF"
+      }
+    },
+
+
+    {
+      "name": "prop-cuda-release",
+      "displayName": "Prop configuration for debug build with cuda support.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "inherits": "common-settings",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "Kokkos_ENABLE_OPENMP": "ON",
+        "Kokkos_ENABLE_CUDA" : "ON"
+      }
     }
 
 
