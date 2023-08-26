@@ -30,7 +30,7 @@ FetchContent_MakeAvailable(Eigen)
 FetchContent_Declare(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG         v1.11.0
+  GIT_TAG         v1.12.0
 )
 FetchContent_MakeAvailable(spdlog)
 
@@ -53,7 +53,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-# ---- Add SpdLog ---- #
+# ---- Add boxed-cpp ---- #
 FetchContent_Declare(
   boxed-cpp
   GIT_REPOSITORY https://github.com/contour-terminal/boxed-cpp.git
@@ -89,9 +89,12 @@ if(NOT Kokkos_ENABLE_CUDA)
     $<$<CONFIG:DEBUG>:-Og>
     $<$<CONFIG:RELEASE>:-O3>
   )
-  target_compile_definitions(prop_lib PUBLIC
-    USE_SPDLOG)
 endif()
+
+if(Prop_USE_SPDLOG)
+  target_compile_definitions(prop_lib PUBLIC USE_SPDLOG)
+endif()
+
 
 target_link_libraries(prop_lib PUBLIC
   ${External_linked_libraries}

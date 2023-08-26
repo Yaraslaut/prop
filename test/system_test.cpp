@@ -134,7 +134,7 @@ TEST_CASE("Two dimensional system benchmark ")
         total_time += duration.count();
     }
 #ifdef USE_SPDLOG
-    spdlog::info("Execution time in nanoseconds: **  {}  ** \n ",
+    spdlog::info("Execution time in nanoseconds: **  {:f}  ** \n ",
                  static_cast<double>(total_time / max_iters));
 #endif
 }
