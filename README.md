@@ -1,3 +1,4 @@
+![](logo/logo.png)
 # This project is still under heavy development
 
 # prop
@@ -9,10 +10,10 @@ data.
 # Build
 
 `prop` uses `cmake` for compilation and relies on CPM to fetch external packages.
-Example command to build prop with openmp support
+Example command to build prop with openmp support, to compile with CUDA support, use `prop-cuda-debug` preset.
 
 ``` sh
-cmake --preset=prop-openmp-release
+cmake --preset=prop-openmp-debug
 cmake --build build --target pyprop
 ```
 IMPORTANT: please specify `target` when building `prop` otherwise compilation time will be extremely large.

@@ -138,12 +138,10 @@ add_custom_command(
 
 # ---- CUSTOM COMMAND TO COPY PYTHON EXAMPLE ----
 add_custom_target(copy_python_files_in_binary_dir
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/simple.py ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/plane_wave_with_pml_x.py ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/plane_wave_with_pml_y.py ${CMAKE_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/point_source.py ${CMAKE_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/examples/dipole_source.py ${CMAKE_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/logo/logo.py ${CMAKE_BINARY_DIR}
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/logo/processing.jl ${CMAKE_BINARY_DIR}
 )
 
 message(STATUS "==============================================================================")

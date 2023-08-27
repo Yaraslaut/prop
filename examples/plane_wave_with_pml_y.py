@@ -19,7 +19,7 @@ y_max = 20.0
 ax = pr.Axis(x_min,x_max)
 ay = pr.Axis(y_min,y_max)
 
-s = pr.System2D(ax,ay,5)
+s = pr.System2D(ax,ay,20)
 
 blocks = []
 
@@ -61,7 +61,7 @@ fig.colorbar(con, ax=ax, extend='both', orientation='vertical')
 # Method to update plot
 def animate(i):
     plt.cla()
-    s.propagate(0.1)
+    s.propagate(10.0)
     z = s.get(Ez)[:,:]
     Z = np.transpose(z);
     con = ax.pcolormesh(X, Y, Z, norm=norm, cmap='bwr',
