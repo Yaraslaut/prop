@@ -43,4 +43,7 @@ https://github.com/kokkos/pykokkos-base/issues/55
 https://github.com/NVIDIA/thrust/issues/1703
 
 
-https://forums.developer.nvidia.com/t/strange-errors-after-system-gcc-upgraded-to-13-1-1/252441
+https://forums.developer.nvidia.com/t/strange-errors-after-system-gcc-upgraded-to-13-1-1/252441]
+
+
+https://github.com/llvm/llvm-project/issues/57544
