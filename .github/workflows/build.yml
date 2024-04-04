@@ -23,18 +23,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cxx: [17, 20]
-        build_type: ["RelWithDebInfo"]
-        compiler:
-          [
-            "g++-11",
-            "g++-10",
-            "clang++-11",
-            "clang++-12",
-            "clang++-13",
-            "clang++-14"
-          ]
-    name: "Ubuntu 22.04 (${{ matrix.compiler }}, C++${{ matrix.cxx }}, ${{matrix.build_type}})"
+        cxx: [20]
+        build_type: ["Release", "Debug"]
+    name: "Ubuntu 22.04 (C++${{ matrix.cxx }}, ${{matrix.build_type}})"
     runs-on: ubuntu-22.04
     outputs:
       id: "${{ matrix.compiler }} (C++${{ matrix.cxx }}, ${{ matrix.build_type }})"
@@ -43,71 +34,21 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: "ccache-ubuntu2204_no_cuda-${{ matrix.compiler }}-${{ matrix.cxx }}-${{ matrix.build_type }}"
+          key: "ccache-ubuntu2204_no_cuda-${{ matrix.cxx }}-${{ matrix.build_type }}"
           max-size: 256M
       - name: "update APT database"
         run: sudo apt -q update
-
-      - name: Install GCC 11
-        if: ${{ startsWith(matrix.compiler, 'g++-11') }}
-        run: sudo apt install -y g++-11
-      - name: Install GCC 10
-        if: ${{ startsWith(matrix.compiler, 'g++-10') }}
-        run: sudo apt install -y g++-10
-      - name: Install Clang 11
-        if: ${{ startsWith(matrix.compiler, 'clang++-11') }}
-        run: sudo apt install -y clang-11
-      - name: Install Clang 12
-        if: ${{ startsWith(matrix.compiler, 'clang++-12') }}
-        run: sudo apt install -y clang-12
-      - name: Install Clang 13
-        if: ${{ startsWith(matrix.compiler, 'clang++-13') }}
-        run: sudo apt install -y clang-13
-      - name: Install Clang 14
-        if: ${{ startsWith(matrix.compiler, 'clang++-14') }}
-        run: sudo apt install -y clang-14
-
+      - name: Install clang
+        run: |
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh all
+      - name: Check clang version
+        run: clang++ --version
       - name: "Download dependencies"
         run: sudo apt install cmake ninja-build
       - name: "Cmake configure"
-        run:  cmake --preset=prop-actions -S . -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}  -DCMAKE_CXX_STANDARD=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
-      - name: "build "
-        run: cmake --build build/  --target "pyprop;prop_test" -- -j3
-
-  ubuntu_2004_cc_matrix_no_cuda:
-    strategy:
-      fail-fast: false
-      matrix:
-        cxx: [17]
-        build_type: ["RelWithDebInfo"]
-        compiler:
-          [
-            "g++",
-            "clang++"
-          ]
-    name: "Ubuntu 20.04 (${{ matrix.compiler }}, C++${{ matrix.cxx }}, ${{matrix.build_type}})"
-    runs-on: ubuntu-20.04
-    outputs:
-      id: "${{ matrix.compiler }} (C++${{ matrix.cxx }}, ${{ matrix.build_type }})"
-    steps:
-      - uses: actions/checkout@v3
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: "ccache-ubuntu2004_no_cuda-${{ matrix.compiler }}-${{ matrix.cxx }}-${{ matrix.build_type }}"
-          max-size: 256M
-      - name: "update APT database"
-        run: sudo apt -q update
-      - name: Install GCC
-        if: ${{ startsWith(matrix.compiler, 'g++') }}
-        run: sudo apt install -y g++
-      - name: Install Clang
-        if: ${{ startsWith(matrix.compiler, 'clang++') }}
-        run: sudo apt install -y clang
-      - name: "Download dependencies"
-        run: sudo apt install cmake ninja-build
-      - name: "Cmake configure"
-        run:  cmake --preset=prop-actions -S . -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}  -DCMAKE_CXX_STANDARD=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        run:  cmake --preset=prop-actions -S . -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_CXX_STANDARD=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
       - name: "build "
         run: cmake --build build/  --target "pyprop;prop_test" -- -j3
 
@@ -116,16 +57,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cxx: [17, 20]
-        build_type: ["Debug", "RelWithDebInfo"]
-        compiler:
-          [
-            "g++-11"
-          ]
-    name: "Ubuntu 22.04 CUDA (${{ matrix.compiler }}, C++${{ matrix.cxx }}, ${{matrix.build_type}})"
+        cxx: [20]
+        build_type: ["Debug", "Release"]
+    name: "Ubuntu 22.04 CUDA (C++${{ matrix.cxx }}, ${{matrix.build_type}})"
     runs-on: ubuntu-22.04
     outputs:
-      id: "${{ matrix.compiler }} (C++${{ matrix.cxx }}, ${{ matrix.build_type }})"
+      id: "(C++${{ matrix.cxx }}, ${{ matrix.build_type }})"
     steps:
       - uses: actions/checkout@v3
       - name: ccache
@@ -139,12 +76,15 @@ jobs:
           cuda: '12.1.0'
       - name: "update APT database"
         run: sudo apt -q update
-      - name: Install GCC 11
-        if: ${{ startsWith(matrix.compiler, 'g++-11') }}
-        run: sudo apt install -y g++-11
+      - name: Install clang
+        run: |
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh all
+
       - name: "Download dependencies"
         run: sudo apt install cmake ninja-build
       - name: "Cmake configure"
-        run:  cmake --preset=prop-cuda-actions -S . -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}  -DCMAKE_CXX_STANDARD=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        run:  cmake --preset=prop-cuda-actions -S . -DCMAKE_CXX_COMPILER=clang++  -DCMAKE_CXX_STANDARD=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
       - name: "build "
         run: cmake --build build/  --target "pyprop" -- -j3

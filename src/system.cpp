@@ -124,14 +124,18 @@ void System2D::addBlock(PMLRegionY& pml_block)
     pml_block._entity_id = _max_entity_id;
     const auto [x_offset, x_size, y_offset, y_size] = _geometry.getProperties(pml_block._box);
 
+    // OPENMP stuctured binding is not supported
+    auto x_offset_ = x_offset;
+    auto y_offset_ = y_offset;
+
     auto policy = SimplePolicy2D({ 0, 0 }, { x_size, y_size });
     auto entity_ind = _field._which_entity.view_host();
     auto max_entity_ind = _max_entity_id;
     _field._which_entity.sync_host();
     Kokkos::parallel_for(
         policy, KOKKOS_LAMBDA(const int& iinit, const int& jinit) {
-            const int i = iinit + x_offset;
-            const int j = jinit + y_offset;
+            const int i = iinit + x_offset_;
+            const int j = jinit + y_offset_;
             entity_ind(i, j) = max_entity_ind;
         });
     pml_block._box._x.calcN(_space_step);

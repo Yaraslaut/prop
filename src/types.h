@@ -28,8 +28,9 @@
 namespace Prop
 {
 
+constexpr double Const_pi = 3.14159265358979323846;
 constexpr double Const_epsilon0 = 8.85418782 * 1e-12;
-constexpr double Const_mu0 = 4.0 * Kokkos::numbers::pi * 1e-7;
+constexpr double Const_mu0 = 4.0 * Const_pi * 1e-7;
 constexpr double Const_c = 1.0;                       // 299792457.95971;
 constexpr double Const_standard_courant_factor = 1.0; // 84853;
 constexpr double Const_scaling_factor = 1.0;          // 1e-6;         // TODO
@@ -59,7 +60,7 @@ struct Types
 {
     using view_type = GridData2D_dual;
 
-    using memory_space = std::conditional<std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
+    using memory_space = typename std::conditional<std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
                                           view_type::t_dev::memory_space,
                                           view_type::t_host::memory_space>::type;
 

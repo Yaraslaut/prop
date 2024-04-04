@@ -106,6 +106,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "Kokkos_ENABLE_OPENMP": "OFF",
+        "CMAKE_CXX_STANDARD": "20",
         "Kokkos_ENABLE_CUDA" : "ON"
       }
     },
@@ -134,6 +135,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "Kokkos_ENABLE_OPENMP": "ON",
+        "CMAKE_CXX_STANDARD": "20",
         "Kokkos_ENABLE_CUDA" : "ON"
       }
     }

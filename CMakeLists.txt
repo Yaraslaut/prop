@@ -36,10 +36,11 @@ FetchContent_MakeAvailable(spdlog)
 
 # ---- Add Kokkos ----
 # Kokkos::kokkos
+
 FetchContent_Declare(
   PyKokkosbase
-  GIT_REPOSITORY https://github.com/Yaraslaut/pykokkos-base.git
-  GIT_TAG        ec5944a136d607a4b6fec36bb90dfcd11b36f877
+  GIT_REPOSITORY https://github.com/kokkos/pykokkos-base.git
+  GIT_TAG        b8694f5986eeeb7aacbf5d75430e3d9caa986629
 )
 FetchContent_MakeAvailable(PyKokkosbase)
 find_package(Python3 COMPONENTS Development)
@@ -95,6 +96,9 @@ if(Prop_USE_SPDLOG)
   target_compile_definitions(prop_lib PUBLIC USE_SPDLOG)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  target_compile_options(prop_lib PUBLIC "-O3")
+endif()
 
 target_link_libraries(prop_lib PUBLIC
   ${External_linked_libraries}
